@@ -1,6 +1,6 @@
 ## Description
 
-SDMicMute is a C++ plugin for the Elgato StreamDeck for muting and unmuting the system 'communications' microphone.
+StreamDeck-MicMute is a C++ plugin for the Elgato StreamDeck for muting and unmuting the system 'communications' microphone.
 
 # Installation
 
