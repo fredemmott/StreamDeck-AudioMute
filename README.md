@@ -4,7 +4,7 @@ SDMicMute is a C++ plugin for the Elgato StreamDeck for muting and unmuting the 
 
 # Installation
 
-Download the `com.fredemmott.micmutetoggle.streamDeckPlugin` file from the releases page, and double-click it.
+Download the `com.fredemmott.micmutetoggle.streamDeckPlugin` file from [the releases page](https://github.com/fredemmott/StreamDeck-MicMute/releases), and double-click it.
 
 # License
 
