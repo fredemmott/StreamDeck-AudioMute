@@ -1,8 +1,7 @@
 {
   "Actions": [
     {
-      "Icon": "default.png", 
-      "Name": "Mic Mute",
+      "Icon": "mic-off", 
       "States": [
         {
           "Image": "mic-off"
@@ -21,7 +20,7 @@
   "CodePathWin": "sdmicmute.exe", 
   "Description": "Toggle the system microphone mute setting.",
   "Name": "Mic Mute", 
-  "Icon": "mic-unknown.png", 
+  "Icon": "mic-off", 
   "Version": "1.1",
   "OS": [
     {
