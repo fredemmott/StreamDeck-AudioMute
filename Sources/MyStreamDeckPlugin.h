@@ -38,8 +38,5 @@ private:
 	std::mutex mVisibleContextsMutex;
 	std::set<std::string> mVisibleContexts;
 	
-	std::string mMutedImage;
-	std::string mUnmutedImage;
-	
 	CallBackTimer *mTimer;
 };

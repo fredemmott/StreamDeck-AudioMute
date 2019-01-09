@@ -14,45 +14,7 @@
 #include <atomic>
 
 #include "MicMuteToggle.h"
-#include "Windows/resource.h"
-#include <wincrypt.h>
 #include "Common/ESDConnectionManager.h"
-
-namespace {
-	std::string ResourceAsBase64(int resource) {
-		const auto res = FindResource(nullptr, MAKEINTRESOURCE(resource), RT_RCDATA);
-		if (!res) {
-			return "";
-		}
-		const auto resHandle = LoadResource(NULL, res);
-		if (!resHandle) {
-			return "";
-		}
-		const BYTE* data = (BYTE*)LockResource(resHandle);
-		const auto size = SizeofResource(NULL, res);
-
-		DWORD b64size;
-		// Find size
-		CryptBinaryToStringA(
-			data,
-			size,
-			CRYPT_STRING_BASE64,
-			nullptr,
-			&b64size
-		);
-		char* b64data = new char[b64size];
-		CryptBinaryToStringA(
-			data,
-			size,
-			CRYPT_STRING_BASE64,
-			b64data,
-			&b64size
-		);
-		auto ret = std::string(b64data, b64size);
-		delete b64data;
-		return ret;
-	}
-};
 
 class CallBackTimer
 {
@@ -104,8 +66,6 @@ private:
 
 MyStreamDeckPlugin::MyStreamDeckPlugin()
 {
-	mMutedImage = ResourceAsBase64(IDM_MUTED);
-	mUnmutedImage = ResourceAsBase64(IDM_UNMUTED);
 	CoInitialize(NULL); // initialize COM for the main thread
 	mTimer = new CallBackTimer();
 	mTimer->start(500, [this]()
@@ -136,7 +96,7 @@ void MyStreamDeckPlugin::UpdateTimer()
 		const bool isMuted = IsMuted();
 		for (const std::string& context : mVisibleContexts)
 		{
-			mConnectionManager->SetImage(isMuted ? mMutedImage : mUnmutedImage, context, kESDSDKTarget_HardwareAndSoftware);
+			mConnectionManager->SetState(isMuted ? 0 : 1, context);
 		}
 		mVisibleContextsMutex.unlock();
 	}
@@ -144,12 +104,14 @@ void MyStreamDeckPlugin::UpdateTimer()
 
 void MyStreamDeckPlugin::KeyDownForAction(const std::string& inAction, const std::string& inContext, const json &inPayload, const std::string& inDeviceID)
 {
+	// don't race the timer, which leads to flickering
+	mVisibleContextsMutex.lock();
 	SetMuted(MuteBehavior::TOGGLE);
-	UpdateTimer();
 }
 
 void MyStreamDeckPlugin::KeyUpForAction(const std::string& inAction, const std::string& inContext, const json &inPayload, const std::string& inDeviceID)
 {
+	mVisibleContextsMutex.unlock();
 	// Nothing to do
 }
 
@@ -158,6 +120,7 @@ void MyStreamDeckPlugin::WillAppearForAction(const std::string& inAction, const 
 	// Remember the context
 	mVisibleContextsMutex.lock();
 	mVisibleContexts.insert(inContext);
+	mConnectionManager->SetState(IsMuted() ? 0 : 1, inContext);
 	mVisibleContextsMutex.unlock();
 }
 

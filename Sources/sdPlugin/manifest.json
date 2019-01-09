@@ -5,8 +5,11 @@
       "Name": "Mic Mute",
       "States": [
         {
-          "Image": "default.png"
-        }
+          "Image": "mic-off"
+        },
+		{
+		  "Image": "mic-on"
+		}
       ],
       "SupportedInMultiActions": false,
 	  "Name": "Mic Mute",
@@ -19,7 +22,7 @@
   "Description": "Toggle the system microphone mute setting.",
   "Name": "Mic Mute", 
   "Icon": "mic-unknown.png", 
-  "Version": "1.0",
+  "Version": "1.1",
   "OS": [
     {
         "Platform": "windows", 
