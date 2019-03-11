@@ -21,13 +21,13 @@ LICENSE file.
 
 namespace {
 const char* DEFAULT_INPUT_ID
-  = "com.fredemmott.streamdeck-mute.deviceIds.defaultInput";
+  = "com.fredemmott.sdmute.deviceIds.defaultInput";
 const char* DEFAULT_OUTPUT_ID
-  = "com.fredemmott.streamdeck-mute.deviceIds.defaultOutput";
+  = "com.fredemmott.sdmute.deviceIds.defaultOutput";
 const char* COMMUNICATIONS_INPUT_ID
-  = "com.fredemmott.streamdeck-mute.deviceIds.communicationsInput";
+  = "com.fredemmott.sdmute.deviceIds.communicationsInput";
 const char* COMMUNICATIONS_OUTPUT_ID
-  = "com.fredemmott.streamdeck-mute.deviceIds.communicationsOutput";
+  = "com.fredemmott.sdmute.deviceIds.communicationsOutput";
 }// namespace
 
 MyStreamDeckPlugin::MyStreamDeckPlugin() {
@@ -176,4 +176,8 @@ void MyStreamDeckPlugin::DidReceiveSettings(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDevice) {
+  json settings;
+  EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
+  mContextDeviceIDs[inContext] = EPLJSONUtils::GetStringByName(
+    settings, "deviceID", COMMUNICATIONS_INPUT_ID);
 }

@@ -19,13 +19,18 @@
   "Author": "Fred Emmott", 
   "CodePathWin": "sdmicmute.exe", 
   "Description": "Toggle the system microphone mute setting.",
+  "PropertyInspectorPath": "propertyinspector/index.html",
   "Name": "Mic Mute", 
   "Icon": "mic-off", 
-  "Version": "1.1",
+  "Version": "2.0",
   "OS": [
     {
         "Platform": "windows", 
         "MinimumVersion" : "10"
     }
-  ]
+  ],
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion" : "4.1"
+  }
 }
