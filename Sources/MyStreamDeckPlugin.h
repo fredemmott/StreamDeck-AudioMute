@@ -31,8 +31,13 @@ public:
 	void DeviceDidConnect(const std::string& inDeviceID, const json &inDeviceInfo) override;
 	void DeviceDidDisconnect(const std::string& inDeviceID) override;
 
-	void DidReceiveGlobalSettings(const json&) override;
 	void SendToPlugin(const std::string& inAction, const std::string& inContext, const json& inPayload, const std::string& inDevice) override;
+  void DidReceiveSettings(
+    const std::string& inAction,
+    const std::string& inContext,
+    const json& inPayload,
+    const std::string& inDevice) override;
+	void DidReceiveGlobalSettings(const json&) override;
 
 private:
 	void UpdateTimer();

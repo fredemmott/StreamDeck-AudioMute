@@ -166,3 +166,10 @@ void MyStreamDeckPlugin::SendToPlugin(const std::string & inAction, const std::s
 		});
 	return;
 }
+
+void MyStreamDeckPlugin::DidReceiveSettings(
+  const std::string& inAction,
+  const std::string& inContext,
+  const json& inPayload,
+  const std::string& inDevice) {
+}
