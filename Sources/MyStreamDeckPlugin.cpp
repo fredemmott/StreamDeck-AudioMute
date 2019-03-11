@@ -13,55 +13,55 @@
 #include "MyStreamDeckPlugin.h"
 #include <atomic>
 
-#include "MicMuteToggle.h"
+#include "AudioFunctions.h"
 #include "Common/ESDConnectionManager.h"
 
 class CallBackTimer
 {
 public:
-    CallBackTimer() :_execute(false) { }
+	CallBackTimer() :_execute(false) { }
 
-    ~CallBackTimer()
-    {
-        if( _execute.load(std::memory_order_acquire) )
-        {
-            stop();
-        };
-    }
+	~CallBackTimer()
+	{
+		if (_execute.load(std::memory_order_acquire))
+		{
+			stop();
+		};
+	}
 
-    void stop()
-    {
-        _execute.store(false, std::memory_order_release);
-        if(_thd.joinable())
-            _thd.join();
-    }
+	void stop()
+	{
+		_execute.store(false, std::memory_order_release);
+		if (_thd.joinable())
+			_thd.join();
+	}
 
-    void start(int interval, std::function<void(void)> func)
-    {
-        if(_execute.load(std::memory_order_acquire))
-        {
-            stop();
-        };
-        _execute.store(true, std::memory_order_release);
-        _thd = std::thread([this, interval, func]()
-        {
+	void start(int interval, std::function<void(void)> func)
+	{
+		if (_execute.load(std::memory_order_acquire))
+		{
+			stop();
+		};
+		_execute.store(true, std::memory_order_release);
+		_thd = std::thread([this, interval, func]()
+		{
 			CoInitialize(NULL); // initialize COM again for the timer thread
-            while (_execute.load(std::memory_order_acquire))
-            {
-                func();
-                std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            }
-        });
-    }
+			while (_execute.load(std::memory_order_acquire))
+			{
+				func();
+				std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+			}
+		});
+	}
 
-    bool is_running() const noexcept
-    {
-        return (_execute.load(std::memory_order_acquire) && _thd.joinable());
-    }
+	bool is_running() const noexcept
+	{
+		return (_execute.load(std::memory_order_acquire) && _thd.joinable());
+	}
 
 private:
-    std::atomic<bool> _execute;
-    std::thread _thd;
+	std::atomic<bool> _execute;
+	std::thread _thd;
 };
 
 MyStreamDeckPlugin::MyStreamDeckPlugin()
@@ -90,7 +90,7 @@ void MyStreamDeckPlugin::UpdateTimer()
 	//
 	// Warning: UpdateTimer() is running in the timer thread
 	//
-	if(mConnectionManager != nullptr)
+	if (mConnectionManager != nullptr)
 	{
 		mVisibleContextsMutex.lock();
 		const bool isMuted = IsMuted();
@@ -102,11 +102,16 @@ void MyStreamDeckPlugin::UpdateTimer()
 	}
 }
 
+bool MyStreamDeckPlugin::IsMuted()
+{
+	return IsAudioDeviceMuted(GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION));
+}
+
 void MyStreamDeckPlugin::KeyDownForAction(const std::string& inAction, const std::string& inContext, const json &inPayload, const std::string& inDeviceID)
 {
 	// don't race the timer, which leads to flickering
 	mVisibleContextsMutex.lock();
-	SetMuted(MuteBehavior::TOGGLE);
+	SetIsAudioDeviceMuted(GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION), MuteAction::TOGGLE);
 }
 
 void MyStreamDeckPlugin::KeyUpForAction(const std::string& inAction, const std::string& inContext, const json &inPayload, const std::string& inDeviceID)

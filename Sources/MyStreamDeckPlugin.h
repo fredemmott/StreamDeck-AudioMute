@@ -32,11 +32,11 @@ public:
 	void DeviceDidDisconnect(const std::string& inDeviceID) override;
 
 private:
-	
 	void UpdateTimer();
 	
 	std::mutex mVisibleContextsMutex;
 	std::set<std::string> mVisibleContexts;
-	
+
 	CallBackTimer *mTimer;
+	bool IsMuted();
 };

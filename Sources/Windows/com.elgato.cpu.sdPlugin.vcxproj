@@ -174,13 +174,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\AudioFunctions.h" />
     <ClInclude Include="..\Common\EPLJSONUtils.h" />
     <ClInclude Include="..\Common\ESDBasePlugin.h" />
     <ClInclude Include="..\Common\ESDConnectionManager.h" />
     <ClInclude Include="..\Common\ESDLocalizer.h" />
     <ClInclude Include="..\Common\ESDSDKDefines.h" />
     <ClInclude Include="..\Common\ESDUtilities.h" />
-    <ClInclude Include="..\MicMuteToggle.h" />
     <ClInclude Include="..\MyStreamDeckPlugin.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
@@ -215,7 +215,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/FI"pch.h" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/FI"pch.h" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="MicMuteToggle.cpp">
+    <ClCompile Include="AudioFunctions.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
