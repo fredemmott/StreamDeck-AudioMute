@@ -14,6 +14,7 @@
 #include <atomic>
 
 #include "AudioFunctions.h"
+#include "Common/EPLJSONUtils.h"
 #include "Common/ESDConnectionManager.h"
 
 class CallBackTimer
@@ -153,4 +154,15 @@ void MyStreamDeckPlugin::DidReceiveGlobalSettings(const json &)
 
 void MyStreamDeckPlugin::SendToPlugin(const std::string & inAction, const std::string & inContext, const json & inPayload, const std::string & inDevice)
 {
+	const auto event = EPLJSONUtils::GetStringByName(inPayload, "event");
+
+	if (event != "getDeviceList") {
+		return;
+	}
+	mConnectionManager->SendToPropertyInspector(inAction, inContext, json{
+		{"event", event},
+		{ "outputDevices", GetAudioDeviceList(Direction::OUTPUT) },
+		{ "inputDevices", GetAudioDeviceList(Direction::INPUT) }
+		});
+	return;
 }
