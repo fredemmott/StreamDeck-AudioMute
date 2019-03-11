@@ -64,7 +64,10 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
 
   std::mutex mVisibleContextsMutex;
   std::set<std::string> mVisibleContexts;
+  std::map<std::string, std::string> mContextDeviceIDs;
+
+  static std::string ConvertPluginAudioDeviceID(
+    const std::string& pluginDeviceID);
 
   CallBackTimer* mTimer;
-  bool IsMuted();
 };

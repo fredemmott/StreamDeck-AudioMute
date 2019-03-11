@@ -19,6 +19,17 @@ LICENSE file.
 #include "Common/EPLJSONUtils.h"
 #include "Common/ESDConnectionManager.h"
 
+namespace {
+const char* DEFAULT_INPUT_ID
+  = "com.fredemmott.streamdeck-mute.deviceIds.defaultInput";
+const char* DEFAULT_OUTPUT_ID
+  = "com.fredemmott.streamdeck-mute.deviceIds.defaultOutput";
+const char* COMMUNICATIONS_INPUT_ID
+  = "com.fredemmott.streamdeck-mute.deviceIds.communicationsInput";
+const char* COMMUNICATIONS_OUTPUT_ID
+  = "com.fredemmott.streamdeck-mute.deviceIds.communicationsOutput";
+}// namespace
+
 MyStreamDeckPlugin::MyStreamDeckPlugin() {
   CoInitialize(NULL);// initialize COM for the main thread
   mTimer = new CallBackTimer();
@@ -40,17 +51,30 @@ void MyStreamDeckPlugin::UpdateTimer() {
   //
   if (mConnectionManager != nullptr) {
     mVisibleContextsMutex.lock();
-    const bool isMuted = IsMuted();
     for (const std::string& context : mVisibleContexts) {
+      const bool isMuted = IsAudioDeviceMuted(
+        ConvertPluginAudioDeviceID(mContextDeviceIDs[context]));
       mConnectionManager->SetState(isMuted ? 0 : 1, context);
     }
     mVisibleContextsMutex.unlock();
   }
 }
 
-bool MyStreamDeckPlugin::IsMuted() {
-  return IsAudioDeviceMuted(
-    GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION));
+std::string MyStreamDeckPlugin::ConvertPluginAudioDeviceID(
+  const std::string& dev) {
+  if (dev == DEFAULT_INPUT_ID) {
+    return GetDefaultAudioDeviceID(Direction::INPUT, Role::DEFAULT);
+  }
+  if (dev == DEFAULT_OUTPUT_ID) {
+    return GetDefaultAudioDeviceID(Direction::OUTPUT, Role::DEFAULT);
+  }
+  if (dev == COMMUNICATIONS_INPUT_ID) {
+    return GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION);
+  }
+  if (dev == COMMUNICATIONS_OUTPUT_ID) {
+    return GetDefaultAudioDeviceID(Direction::OUTPUT, Role::COMMUNICATION);
+  }
+  return dev;
 }
 
 void MyStreamDeckPlugin::KeyDownForAction(
@@ -58,11 +82,7 @@ void MyStreamDeckPlugin::KeyDownForAction(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
-  // don't race the timer, which leads to flickering
-  mVisibleContextsMutex.lock();
-  SetIsAudioDeviceMuted(
-    GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION),
-    MuteAction::TOGGLE);
+  // Nothing to do
 }
 
 void MyStreamDeckPlugin::KeyUpForAction(
@@ -70,8 +90,12 @@ void MyStreamDeckPlugin::KeyUpForAction(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
+  // Don't race the timer, which leads to flickering
+  mVisibleContextsMutex.lock();
+  SetIsAudioDeviceMuted(
+    ConvertPluginAudioDeviceID(mContextDeviceIDs[inContext]),
+    MuteAction::TOGGLE);
   mVisibleContextsMutex.unlock();
-  // Nothing to do
 }
 
 void MyStreamDeckPlugin::WillAppearForAction(
@@ -82,7 +106,15 @@ void MyStreamDeckPlugin::WillAppearForAction(
   // Remember the context
   mVisibleContextsMutex.lock();
   mVisibleContexts.insert(inContext);
-  mConnectionManager->SetState(IsMuted() ? 0 : 1, inContext);
+
+  json settings;
+  EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
+  const std::string audioDevice = EPLJSONUtils::GetStringByName(
+    settings, "deviceID", COMMUNICATIONS_INPUT_ID);
+  mContextDeviceIDs[inContext] = audioDevice;
+  mConnectionManager->SetState(
+    IsAudioDeviceMuted(ConvertPluginAudioDeviceID(audioDevice)) ? 0 : 1,
+    inContext);
   mVisibleContextsMutex.unlock();
 }
 
@@ -124,7 +156,18 @@ void MyStreamDeckPlugin::SendToPlugin(
     inAction, inContext,
     json{{"event", event},
          {"outputDevices", GetAudioDeviceList(Direction::OUTPUT)},
-         {"inputDevices", GetAudioDeviceList(Direction::INPUT)}});
+         {"inputDevices", GetAudioDeviceList(Direction::INPUT)},
+         {"defaultDevices",
+          {
+            {DEFAULT_INPUT_ID,
+             GetDefaultAudioDeviceID(Direction::INPUT, Role::DEFAULT)},
+            {DEFAULT_OUTPUT_ID,
+             GetDefaultAudioDeviceID(Direction::OUTPUT, Role::DEFAULT)},
+            {COMMUNICATIONS_INPUT_ID,
+             GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION)},
+            {COMMUNICATIONS_OUTPUT_ID,
+             GetDefaultAudioDeviceID(Direction::OUTPUT, Role::COMMUNICATION)},
+          }}});
   return;
 }
 
