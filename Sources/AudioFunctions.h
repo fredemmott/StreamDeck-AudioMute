@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <map>
 #include <string>
 
@@ -26,3 +27,7 @@ void SetDefaultAudioDeviceID(Direction, Role, const std::string& deviceID);
 
 bool IsAudioDeviceMuted(const std::string& deviceID);
 void SetIsAudioDeviceMuted(const std::string& deviceID, MuteAction);
+
+typedef void* AUDIO_DEVICE_MUTE_CALLBACK_HANDLE;
+AUDIO_DEVICE_MUTE_CALLBACK_HANDLE AddAudioDeviceMuteUnmuteCallback(const std::string& deviceID, std::function<void(bool isMuted)>);
+void RemoveAudioDeviceMuteUnmuteCallback(AUDIO_DEVICE_MUTE_CALLBACK_HANDLE);

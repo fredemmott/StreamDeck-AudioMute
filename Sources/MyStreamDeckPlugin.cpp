@@ -20,10 +20,8 @@ LICENSE file.
 #include "Common/ESDConnectionManager.h"
 
 namespace {
-const char* DEFAULT_INPUT_ID
-  = "com.fredemmott.sdmute.deviceIds.defaultInput";
-const char* DEFAULT_OUTPUT_ID
-  = "com.fredemmott.sdmute.deviceIds.defaultOutput";
+const char* DEFAULT_INPUT_ID = "com.fredemmott.sdmute.deviceIds.defaultInput";
+const char* DEFAULT_OUTPUT_ID = "com.fredemmott.sdmute.deviceIds.defaultOutput";
 const char* COMMUNICATIONS_INPUT_ID
   = "com.fredemmott.sdmute.deviceIds.communicationsInput";
 const char* COMMUNICATIONS_OUTPUT_ID
@@ -32,8 +30,8 @@ const char* COMMUNICATIONS_OUTPUT_ID
 
 MyStreamDeckPlugin::MyStreamDeckPlugin() {
   CoInitialize(NULL);// initialize COM for the main thread
-  mTimer = new CallBackTimer();
-  mTimer->start(500, [this]() { this->UpdateTimer(); });
+  // mTimer = new CallBackTimer();
+  // mTimer->start(500, [this]() { this->UpdateTimer(); });
 }
 
 MyStreamDeckPlugin::~MyStreamDeckPlugin() {
@@ -58,6 +56,26 @@ void MyStreamDeckPlugin::UpdateTimer() {
     }
     mVisibleContextsMutex.unlock();
   }
+}
+
+void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
+  mVisibleContextsMutex.lock();
+  if (mContextCallbacks.find(context) != mContextCallbacks.end()) {
+    RemoveAudioDeviceMuteUnmuteCallback(mContextCallbacks[context]);
+  }
+  DebugPrint(
+    "Installign callback for %s",
+    ConvertPluginAudioDeviceID(mContextDeviceIDs[context]).c_str());
+  mContextCallbacks[context] = AddAudioDeviceMuteUnmuteCallback(
+    ConvertPluginAudioDeviceID(mContextDeviceIDs[context]),
+    [this, context](bool isMuted) {
+      DebugPrint("In callback - %s", isMuted ? "muted" : "unmuted"),
+      mVisibleContextsMutex.lock();
+      mConnectionManager->SetState(isMuted ? 0 : 1, context);
+      mVisibleContextsMutex.unlock();
+    });
+  DebugPrint("Got callback? %s", mContextCallbacks[context] ? "yes" : "no");
+  mVisibleContextsMutex.unlock();
 }
 
 std::string MyStreamDeckPlugin::ConvertPluginAudioDeviceID(
@@ -116,6 +134,7 @@ void MyStreamDeckPlugin::WillAppearForAction(
     IsAudioDeviceMuted(ConvertPluginAudioDeviceID(audioDevice)) ? 0 : 1,
     inContext);
   mVisibleContextsMutex.unlock();
+  UpdateContextCallback(inContext);
 }
 
 void MyStreamDeckPlugin::WillDisappearForAction(
@@ -180,4 +199,5 @@ void MyStreamDeckPlugin::DidReceiveSettings(
   EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
   mContextDeviceIDs[inContext] = EPLJSONUtils::GetStringByName(
     settings, "deviceID", COMMUNICATIONS_INPUT_ID);
+  UpdateContextCallback(inContext);
 }

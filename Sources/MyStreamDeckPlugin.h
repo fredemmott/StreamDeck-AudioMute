@@ -61,10 +61,12 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
 
  private:
   void UpdateTimer();
+  void UpdateContextCallback(const std::string& context);
 
   std::mutex mVisibleContextsMutex;
   std::set<std::string> mVisibleContexts;
   std::map<std::string, std::string> mContextDeviceIDs;
+  std::map<std::string, void*> mContextCallbacks;
 
   static std::string ConvertPluginAudioDeviceID(
     const std::string& pluginDeviceID);
