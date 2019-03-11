@@ -12,6 +12,7 @@ LICENSE file.
 **/
 //==============================================================================
 #include "CallbackTimer.h"
+#include "objbase.h"
 
 CallBackTimer::CallBackTimer() : _execute(false) {
 }
@@ -34,6 +35,7 @@ void CallBackTimer::start(int interval, std::function<void(void)> func) {
   };
   _execute.store(true, std::memory_order_release);
   _thd = std::thread([this, interval, func]() {
+    CoInitialize(NULL); // we need COM on this thread
     while (true) {
       std::this_thread::sleep_for(std::chrono::milliseconds(interval));
       if (!_execute.load(std::memory_order_acquire)) {
