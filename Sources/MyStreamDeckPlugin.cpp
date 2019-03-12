@@ -15,7 +15,6 @@ LICENSE file.
 #include <atomic>
 
 #include "AudioFunctions.h"
-#include "CallbackTimer.h"
 #include "Common/EPLJSONUtils.h"
 #include "Common/ESDConnectionManager.h"
 
@@ -30,32 +29,9 @@ const char* COMMUNICATIONS_OUTPUT_ID
 
 MyStreamDeckPlugin::MyStreamDeckPlugin() {
   CoInitialize(NULL);// initialize COM for the main thread
-  // mTimer = new CallBackTimer();
-  // mTimer->start(500, [this]() { this->UpdateTimer(); });
 }
 
 MyStreamDeckPlugin::~MyStreamDeckPlugin() {
-  if (mTimer != nullptr) {
-    mTimer->stop();
-
-    delete mTimer;
-    mTimer = nullptr;
-  }
-}
-
-void MyStreamDeckPlugin::UpdateTimer() {
-  //
-  // Warning: UpdateTimer() is running in the timer thread
-  //
-  if (mConnectionManager != nullptr) {
-    mVisibleContextsMutex.lock();
-    for (const std::string& context : mVisibleContexts) {
-      const bool isMuted = IsAudioDeviceMuted(
-        ConvertPluginAudioDeviceID(mContextDeviceIDs[context]));
-      mConnectionManager->SetState(isMuted ? 0 : 1, context);
-    }
-    mVisibleContextsMutex.unlock();
-  }
 }
 
 void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
@@ -108,7 +84,6 @@ void MyStreamDeckPlugin::KeyUpForAction(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
-  // Don't race the timer, which leads to flickering
   mVisibleContextsMutex.lock();
   SetIsAudioDeviceMuted(
     ConvertPluginAudioDeviceID(mContextDeviceIDs[inContext]),

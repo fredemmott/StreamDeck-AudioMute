@@ -60,7 +60,6 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
   void DidReceiveGlobalSettings(const json&) override;
 
  private:
-  void UpdateTimer();
   void UpdateContextCallback(const std::string& context);
 
   std::mutex mVisibleContextsMutex;
