@@ -45,7 +45,7 @@ void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
   mContextCallbacks[context] = AddAudioDeviceMuteUnmuteCallback(
     ConvertPluginAudioDeviceID(mContextDeviceIDs[context]),
     [this, context](bool isMuted) {
-      DebugPrint("In callback - %s", isMuted ? "muted" : "unmuted"),
+      DebugPrint("In callback - %s", isMuted ? "muted" : "unmuted");
       mVisibleContextsMutex.lock();
       mConnectionManager->SetState(isMuted ? 0 : 1, context);
       mVisibleContextsMutex.unlock();
