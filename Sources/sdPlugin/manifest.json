@@ -11,16 +11,16 @@
 		}
       ],
       "SupportedInMultiActions": false,
-	  "Name": "Mic Mute",
-      "Tooltip": "This action toggles the system microphone mute",
+	  "Name": "Audio Mute",
+      "Tooltip": "This action toggles mute for audio devices (e.g. microphones, speakers)",
       "UUID": "com.fredemmott.micmutetoggle.toggle"
     }
   ], 
   "Author": "Fred Emmott", 
   "CodePathWin": "sdmicmute.exe", 
-  "Description": "Toggle the system microphone mute setting.",
+  "Description": "Toggle the mute for audio devices, such as microphones or speakers.",
   "PropertyInspectorPath": "propertyinspector/index.html",
-  "Name": "Mic Mute", 
+  "Name": "Audio Mute", 
   "Icon": "mic-off", 
   "Version": "2.0",
   "OS": [
