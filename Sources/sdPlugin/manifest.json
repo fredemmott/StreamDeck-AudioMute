@@ -22,7 +22,7 @@
   "PropertyInspectorPath": "propertyinspector/index.html",
   "Name": "Audio Mute", 
   "Icon": "mic-off", 
-  "Version": "2.0",
+  "Version": "2.1",
   "OS": [
     {
         "Platform": "windows", 
