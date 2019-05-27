@@ -1,15 +1,16 @@
 #include "windows.h"
+#include "endpointvolume.h"
 #include "mmdeviceapi.h"
 #include "mmsystem.h"
-#include "endpointvolume.h"
-#include "Functiondiscoverykeys_devpkey.h"
 #include "PolicyConfig.h"
+#include "Functiondiscoverykeys_devpkey.h"
 
+#include "resource.h"
 #include "../AudioFunctions.h"
 
 #include <cassert>
-#include <locale>
 #include <codecvt>
+#include <locale>
 
 namespace {
 std::string WCharPtrToString(LPWSTR in) {
@@ -223,7 +224,8 @@ AddAudioDeviceMuteUnmuteCallback(
   return nullptr;
 }
 
-void RemoveAudioDeviceMuteUnmuteCallback(AUDIO_DEVICE_MUTE_CALLBACK_HANDLE _handle) {
+void RemoveAudioDeviceMuteUnmuteCallback(
+  AUDIO_DEVICE_MUTE_CALLBACK_HANDLE _handle) {
   if (!_handle) {
     return;
   }
@@ -232,4 +234,16 @@ void RemoveAudioDeviceMuteUnmuteCallback(AUDIO_DEVICE_MUTE_CALLBACK_HANDLE _hand
   handle->dev->Release();
   delete handle;
   return;
+}
+
+namespace {
+const auto muteWav = MAKEINTRESOURCE(IDR_MUTE);
+const auto unmuteWav = MAKEINTRESOURCE(IDR_UNMUTE);
+} // namespace
+
+void PlayFeedbackSound(MuteAction action) {
+  assert(action != MuteAction::TOGGLE);
+
+  const auto feedbackWav = (action == MuteAction::MUTE) ? muteWav : unmuteWav;
+  PlaySound(feedbackWav, GetModuleHandle(NULL), SND_ASYNC | SND_RESOURCE);
 }

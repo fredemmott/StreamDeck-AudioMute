@@ -20,6 +20,11 @@
 				</optgroup>
 			</select>
 		</div>
+    <div type="checkbox" class="sdpi-item">
+      <div class="sdpi-item-label">Feedback</div>
+      <input class="sdpi-item-value" id="feedbackSounds" type="checkbox" value="on" onchange="saveSettings()">
+      <label for="feedbackSounds"><span></span>Feedback Sounds</label>
+    </div>
 		<details>
 			<summary>Standard vs Specific Devices</summary>
 			<p>
@@ -64,9 +69,13 @@
 			actionInfo = jsonObj.actionInfo.action;
 			settings = jsonObj.actionInfo.payload.settings;
 			ctx = jsonObj.actionInfo.context;
-			if (!settings.deviceID) {
+			if (!'deviceID' in settings) {
 				settings.deviceID = DEFAULT_DEVICE_ID;
 			}
+			if (!'feedbackSounds' in settings) {
+			  settings.feedbackSounds = true;
+			}
+			document.getElementById('feedbackSounds').checked = settings.feedbackSounds;
 
 			$SD.api.sendToPlugin(uuid, actionInfo, { event: "getDeviceList" });
 		};
@@ -116,7 +125,8 @@
 		}
 
 		function saveSettings() {
-			settings.deviceID = document.getElementById('device').value;
+		  settings.deviceID = document.getElementById('device').value;
+		  settings.feedbackSounds = document.getElementById('feedbackSounds').checked;
 			console.log('saving settings', settings);
     	$SD.api.setSettings(uuid, settings);
 		}

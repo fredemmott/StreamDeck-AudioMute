@@ -65,6 +65,7 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
   std::mutex mVisibleContextsMutex;
   std::set<std::string> mVisibleContexts;
   std::map<std::string, std::string> mContextDeviceIDs;
+  std::map<std::string, bool> mContextFeedbackSounds;
   std::map<std::string, void*> mContextCallbacks;
 
   static std::string ConvertPluginAudioDeviceID(

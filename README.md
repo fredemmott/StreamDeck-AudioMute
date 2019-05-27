@@ -12,4 +12,4 @@ Download the `com.fredemmott.micmutetoggle.streamDeckPlugin` file from [the rele
 
 # License
 
-This project is [MIT-licensed](LICENSE).
+The source code for this project is [MIT-licensed](LICENSE). The audio files in this project are [CC0-licensed](LICENSE.AUDIO-FILES).

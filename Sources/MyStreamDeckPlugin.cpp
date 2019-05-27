@@ -40,7 +40,7 @@ void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
     RemoveAudioDeviceMuteUnmuteCallback(mContextCallbacks[context]);
   }
   DebugPrint(
-    "Installign callback for %s",
+    "Installing callback for %s",
     ConvertPluginAudioDeviceID(mContextDeviceIDs[context]).c_str());
   mContextCallbacks[context] = AddAudioDeviceMuteUnmuteCallback(
     ConvertPluginAudioDeviceID(mContextDeviceIDs[context]),
@@ -85,9 +85,15 @@ void MyStreamDeckPlugin::KeyUpForAction(
   const json& inPayload,
   const std::string& inDeviceID) {
   mVisibleContextsMutex.lock();
-  SetIsAudioDeviceMuted(
-    ConvertPluginAudioDeviceID(mContextDeviceIDs[inContext]),
-    MuteAction::TOGGLE);
+  const auto id = ConvertPluginAudioDeviceID(mContextDeviceIDs[inContext]);
+  SetIsAudioDeviceMuted(id, MuteAction::TOGGLE);
+  if (mContextFeedbackSounds[inContext]) {
+    if (IsAudioDeviceMuted(id)) {
+      PlayFeedbackSound(MuteAction::MUTE);
+    } else {
+      PlayFeedbackSound(MuteAction::UNMUTE);
+    }
+  }
   mVisibleContextsMutex.unlock();
 }
 
@@ -105,6 +111,8 @@ void MyStreamDeckPlugin::WillAppearForAction(
   const std::string audioDevice = EPLJSONUtils::GetStringByName(
     settings, "deviceID", COMMUNICATIONS_INPUT_ID);
   mContextDeviceIDs[inContext] = audioDevice;
+  mContextFeedbackSounds[inContext]
+    = EPLJSONUtils::GetBoolByName(settings, "feedbackSounds", true);
   mConnectionManager->SetState(
     IsAudioDeviceMuted(ConvertPluginAudioDeviceID(audioDevice)) ? 0 : 1,
     inContext);
@@ -174,5 +182,7 @@ void MyStreamDeckPlugin::DidReceiveSettings(
   EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
   mContextDeviceIDs[inContext] = EPLJSONUtils::GetStringByName(
     settings, "deviceID", COMMUNICATIONS_INPUT_ID);
+  mContextFeedbackSounds[inContext]
+    = EPLJSONUtils::GetBoolByName(settings, "feedbackSounds", true);
   UpdateContextCallback(inContext);
 }
