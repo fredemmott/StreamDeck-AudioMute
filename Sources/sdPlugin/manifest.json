@@ -17,7 +17,7 @@
     }
   ], 
   "Author": "Fred Emmott", 
-  "CodePathWin": "sdmicmute.exe", 
+  "CodePath": "sdmicmute.exe", 
   "Description": "Toggle the mute for audio devices, such as microphones or speakers.",
   "PropertyInspectorPath": "propertyinspector/index.html",
   "Name": "Audio Mute", 
