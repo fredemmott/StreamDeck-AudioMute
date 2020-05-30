@@ -1,9 +1,13 @@
+// Include order matters for these; don't let the autoformatter break things
+
+// clang-format off
 #include "windows.h"
 #include "endpointvolume.h"
 #include "mmdeviceapi.h"
 #include "mmsystem.h"
 #include "PolicyConfig.h"
 #include "Functiondiscoverykeys_devpkey.h"
+// clang-format on
 
 #include "resource.h"
 #include "../AudioFunctions.h"
@@ -239,7 +243,7 @@ void RemoveAudioDeviceMuteUnmuteCallback(
 namespace {
 const auto muteWav = MAKEINTRESOURCE(IDR_MUTE);
 const auto unmuteWav = MAKEINTRESOURCE(IDR_UNMUTE);
-} // namespace
+}// namespace
 
 void PlayFeedbackSound(MuteAction action) {
   assert(action != MuteAction::TOGGLE);
