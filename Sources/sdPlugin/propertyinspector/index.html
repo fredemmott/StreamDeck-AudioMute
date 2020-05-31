@@ -2,135 +2,178 @@
 <html>
 
 <head>
-	<title>com.fredemmott.sdmicmute PI</title>
-	<meta charset="utf-8" />
-	<link rel="stylesheet" href="css/sdpi.css">
+  <title>com.fredemmott.sdmicmute PI</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="css/sdpi.css">
 </head>
 
 <body>
-	<div class="sdpi-wrapper hidden" id="mainWrapper">
-		<div class="sdpi-item">
-			<div class="sdpi-item-label">Device</div>
-			<select class="sdpi-item-value select" id="device" onchange="saveSettings()">
-				<optgroup label="Standard Device" id="dynamicDevices">
-				</optgroup>
-				<optgroup label="Specific Input Device" id="inputDevices">
-				</optgroup>
-				<optgroup label="Specific Output Device" id="outputDevices">
-				</optgroup>
-			</select>
-		</div>
+  <div class="sdpi-wrapper hidden" id="mainWrapper">
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Device</div>
+      <select class="sdpi-item-value select" id="device" onchange="saveSettings()">
+        <optgroup label="Standard Device" id="dynamicDevices">
+        </optgroup>
+        <optgroup label="Specific Input Device" id="inputDevices">
+        </optgroup>
+        <optgroup label="Specific Output Device" id="outputDevices">
+        </optgroup>
+      </select>
+    </div>
     <div type="checkbox" class="sdpi-item">
       <div class="sdpi-item-label">Feedback</div>
       <input class="sdpi-item-value" id="feedbackSounds" type="checkbox" value="on" onchange="saveSettings()">
       <label for="feedbackSounds"><span></span>Feedback Sounds</label>
     </div>
-		<details>
-			<summary>Standard vs Specific Devices</summary>
-			<p>
-				If you select a 'standard' device, Windows sound settings can change what physical
-				device this plugin affects.
-			</p>
-			<p>
-				If you select a specific device, this plugin will always try to
-				change/use that device, even if it is no longer the default device in Windows.
-			</p>
-		</details>
-	</div>
+    <details>
+      <summary>Standard vs Specific Devices</summary>
+      <p>
+        If you select a 'standard' device, Windows sound settings can change what physical
+        device this plugin affects.
+      </p>
+      <p>
+        If you select a specific device, this plugin will always try to
+        change/use that device, even if it is no longer the default device in Windows.
+      </p>
+    </details>
+  </div>
 
-	<script src="common.js"></script>
-	<script>
+  <script src="common.js"></script>
+  <script>
 
-		/** Step 1: Subscribe to the 'connected' event
-		 * and call your own initialization method.
-		 * The connected - event is emitted, when StreamDeck
-		 * has established a connection.
-		 * The 'connected' event carries a JSON object containing
-		 * necessary information about the connection and the
-		 * inital data.
-		 */
-		const SPECIAL_IDS = {
-			defaultInput: "com.fredemmott.sdmute.deviceIds.defaultInput",
-			defaultOutput: "com.fredemmott.sdmute.deviceIds.defaultOutput",
-			communicationsInput: "com.fredemmott.sdmute.deviceIds.communicationsInput",
-			communicationsOutput: "com.fredemmott.sdmute.deviceIds.communicationsOutput",
-		};
-		const DEFAULT_DEVICE_ID = SPECIAL_IDS.communicationsInput;
-		var uuid,
-			actionInfo,
-			ctx,
-			settings;
+    /** Step 1: Subscribe to the 'connected' event
+     * and call your own initialization method.
+     * The connected - event is emitted, when StreamDeck
+     * has established a connection.
+     * The 'connected' event carries a JSON object containing
+     * necessary information about the connection and the
+     * inital data.
+     */
+    const SPECIAL_IDS = {
+      defaultInput: "com.fredemmott.sdmute.deviceIds.defaultInput",
+      defaultOutput: "com.fredemmott.sdmute.deviceIds.defaultOutput",
+      communicationsInput: "com.fredemmott.sdmute.deviceIds.communicationsInput",
+      communicationsOutput: "com.fredemmott.sdmute.deviceIds.communicationsOutput",
+    };
+    const DEFAULT_DEVICE_ID = SPECIAL_IDS.communicationsInput;
+    var uuid,
+      actionInfo,
+      ctx,
+      settings;
 
-		$SD.on('connected', (jsonObj) => connected(jsonObj));
-		$SD.on('sendToPropertyInspector', (jsonObj) => sendToPropertyInspector(jsonObj));
+    $SD.on('connected', (jsonObj) => connected(jsonObj));
+    $SD.on('sendToPropertyInspector', (jsonObj) => sendToPropertyInspector(jsonObj));
 
-		function connected(jsonObj) {
-			uuid = jsonObj.uuid;
-			actionInfo = jsonObj.actionInfo.action;
-			settings = jsonObj.actionInfo.payload.settings;
-			ctx = jsonObj.actionInfo.context;
-			if (!'deviceID' in settings) {
-				settings.deviceID = DEFAULT_DEVICE_ID;
-			}
-			if (!'feedbackSounds' in settings) {
-			  settings.feedbackSounds = true;
-			}
-			document.getElementById('feedbackSounds').checked = settings.feedbackSounds;
+    function connected(jsonObj) {
+      uuid = jsonObj.uuid;
+      actionInfo = jsonObj.actionInfo.action;
+      settings = jsonObj.actionInfo.payload.settings;
+      ctx = jsonObj.actionInfo.context;
+      if (!'deviceID' in settings) {
+        settings.deviceID = DEFAULT_DEVICE_ID;
+      }
+      if (!'feedbackSounds' in settings) {
+        settings.feedbackSounds = true;
+      }
+      document.getElementById('feedbackSounds').checked = settings.feedbackSounds;
 
-			$SD.api.sendToPlugin(uuid, actionInfo, { event: "getDeviceList" });
-		};
+      $SD.api.sendToPlugin(uuid, actionInfo, { event: "getDeviceList" });
+    };
 
-		function createDeviceElement(deviceID, label, extra = null) {
-			const option = document.createElement("option");
-			option.setAttribute('value', deviceID);
-			if (settings.deviceID == deviceID) {
-				option.setAttribute('selected', true);
-			}
-			option.appendChild(document.createTextNode(label));
-			if (extra != null) {
-				option.appendChild(document.createTextNode(' - ' + extra));
-			}
-			return option;
-		}
+    function createDeviceElement(deviceID, label, extra = null) {
+      const option = document.createElement("option");
+      option.setAttribute('value', deviceID);
+      if (settings.deviceID == deviceID) {
+        option.setAttribute('selected', true);
+      }
+      option.appendChild(document.createTextNode(label));
+      if (extra != null) {
+        option.appendChild(document.createTextNode(' - ' + extra));
+      }
+      return option;
+    }
 
-		function sendToPropertyInspector(jsonObj) {
-			const payload = jsonObj.payload;
-			const { event } = payload;
-			if (event != "getDeviceList") {
-				return;
-			}
-			const { outputDevices, inputDevices, defaultDevices } = payload;
+    function sendToPropertyInspector(jsonObj) {
+      const payload = jsonObj.payload;
+      const { event } = payload;
+      if (event != "getDeviceList") {
+        return;
+      }
+      const { outputDevices, inputDevices, defaultDevices } = payload;
 
-			const defaultInput = outputDevices[defaultDevices[SPECIAL_IDS.defaultInput]];
-			const defaultOutput = outputDevices[defaultDevices[SPECIAL_IDS.defaultOutput]];
-			const communicationsInput = outputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]];
-			const communicationsOutput = outputDevices[defaultDevices[SPECIAL_IDS.communicationsOutput]];
+      const state_sort = {
+        "connected": 0,
+        "device_present_no_connection": 1,
+        "device_not_present": 2,
+        "device_disabled": 3,
+      };
+      const sorted_keys = devices => Object.keys(devices).sort((a_id, b_id) => {
+        const a = devices[a_id];
+        const b = devices[b_id];
 
-			const dynamicGroup = document.getElementById('dynamicDevices');
-			dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultInput, "Default Input", inputDevices[defaultDevices[SPECIAL_IDS.defaultInput]]));
-			dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultOutput, "Default Output", outputDevices[defaultDevices[SPECIAL_IDS.defaultOutput]]));
-			dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsInput, "Communications Input", inputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]]));
-			dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsOutput, "Communications Output", outputDevices[defaultDevices[SPECIAL_IDS.communicationsOutput]]));
+        if (state_sort[a.state] < state_sort[b.state]) {
+          return -1;
+        }
+        if (state_sort[a.state] > state_sort[b.state]) {
+          return 1;
+        }
+        if (a.displayName < b.displayName) {
+          return -1;
+        }
+        if (a.displayName > b.displayName) {
+          return 1;
+        }
+        return 0;
+      });
 
-			const inputGroup = document.getElementById('inputDevices');
-			Object.keys(inputDevices).map((deviceId) => {
-				inputGroup.appendChild(createDeviceElement(deviceId, inputDevices[deviceId]));
-			});
-			const outputGroup = document.getElementById('outputDevices');
-			Object.keys(outputDevices).map((deviceId) => {
-				outputGroup.appendChild(createDeviceElement(deviceId, outputDevices[deviceId]));
-			});
+      const defaultInput = outputDevices[defaultDevices[SPECIAL_IDS.defaultInput]];
+      const defaultOutput = outputDevices[defaultDevices[SPECIAL_IDS.defaultOutput]];
+      const communicationsInput = outputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]];
+      const communicationsOutput = outputDevices[defaultDevices[SPECIAL_IDS.communicationsOutput]];
 
-			document.getElementById('mainWrapper').classList.remove('hidden');
-		}
+      const dynamicGroup = document.getElementById('dynamicDevices');
+      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultInput, "Default Input", inputDevices[defaultDevices[SPECIAL_IDS.defaultInput]].displayName));
+      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultOutput, "Default Output", outputDevices[defaultDevices[SPECIAL_IDS.defaultOutput]].displayName));
+      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsInput, "Communications Input", inputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]].displayName));
+      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsOutput, "Communications Output", outputDevices[defaultDevices[SPECIAL_IDS.communicationsOutput]].displayName));
 
-		function saveSettings() {
-		  settings.deviceID = document.getElementById('device').value;
-		  settings.feedbackSounds = document.getElementById('feedbackSounds').checked;
-			console.log('saving settings', settings);
-    	$SD.api.setSettings(uuid, settings);
-		}
-	</script>
+      const show_device = device => {
+        return device.state == "connected" || device.state == "device_present_no_connection" || device.id == settings.deviceID;
+      };
+      const display_name = device => device.displayName + {
+        "connected": "",
+        "device_present_no_connection": " (unplugged)",
+        "device_not_present": " (not present)",
+        "device_disabled": " (disabled)"
+      }[device.state];
+
+      const inputGroup = document.getElementById('inputDevices');
+      sorted_keys(inputDevices).map((deviceID) => {
+        const device = inputDevices[deviceID];
+        if (!show_device(device)) {
+          return;
+        }
+        inputGroup.appendChild(createDeviceElement(deviceID, display_name(device)));
+      });
+      const outputGroup = document.getElementById('outputDevices');
+      sorted_keys(outputDevices).map((deviceID) => {
+        const device = outputDevices[deviceID];
+        if (!show_device(device)) {
+          return;
+        }
+        outputGroup.appendChild(createDeviceElement(deviceID, display_name(device)));
+      });
+
+      document.getElementById('mainWrapper').classList.remove('hidden');
+    }
+
+    function saveSettings() {
+      settings.deviceID = document.getElementById('device').value;
+      settings.feedbackSounds = document.getElementById('feedbackSounds').checked;
+      console.log('saving settings', settings);
+      $SD.api.setSettings(uuid, settings);
+    }
+  </script>
 
 </body>
 
