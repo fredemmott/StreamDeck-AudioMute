@@ -1,4 +1,3 @@
----
 BasedOnStyle: Google
 AlignEscapedNewlinesLeft: DontAlign
 AlignTrailingComments: 'false'
