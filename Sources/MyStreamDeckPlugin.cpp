@@ -27,6 +27,10 @@ const char* COMMUNICATIONS_OUTPUT_ID
   = "com.fredemmott.sdmute.deviceIds.communicationsOutput";
 }// namespace
 
+void to_json(json& j, const AudioDeviceInfo& info) {
+  j = info.displayName;
+}
+
 MyStreamDeckPlugin::MyStreamDeckPlugin() {
   CoInitialize(NULL);// initialize COM for the main thread
 }
@@ -57,16 +61,16 @@ void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
 std::string MyStreamDeckPlugin::ConvertPluginAudioDeviceID(
   const std::string& dev) {
   if (dev == DEFAULT_INPUT_ID) {
-    return GetDefaultAudioDeviceID(Direction::INPUT, Role::DEFAULT);
+    return GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT);
   }
   if (dev == DEFAULT_OUTPUT_ID) {
-    return GetDefaultAudioDeviceID(Direction::OUTPUT, Role::DEFAULT);
+    return GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT);
   }
   if (dev == COMMUNICATIONS_INPUT_ID) {
-    return GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION);
+    return GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION);
   }
   if (dev == COMMUNICATIONS_OUTPUT_ID) {
-    return GetDefaultAudioDeviceID(Direction::OUTPUT, Role::COMMUNICATION);
+    return GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION);
   }
   return dev;
 }
@@ -157,18 +161,18 @@ void MyStreamDeckPlugin::SendToPlugin(
   mConnectionManager->SendToPropertyInspector(
     inAction, inContext,
     json{{"event", event},
-         {"outputDevices", GetAudioDeviceList(Direction::OUTPUT)},
-         {"inputDevices", GetAudioDeviceList(Direction::INPUT)},
+         {"outputDevices", GetAudioDeviceList(AudioDeviceDirection::OUTPUT)},
+         {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
          {"defaultDevices",
           {
             {DEFAULT_INPUT_ID,
-             GetDefaultAudioDeviceID(Direction::INPUT, Role::DEFAULT)},
+             GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT)},
             {DEFAULT_OUTPUT_ID,
-             GetDefaultAudioDeviceID(Direction::OUTPUT, Role::DEFAULT)},
+             GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT)},
             {COMMUNICATIONS_INPUT_ID,
-             GetDefaultAudioDeviceID(Direction::INPUT, Role::COMMUNICATION)},
+             GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION)},
             {COMMUNICATIONS_OUTPUT_ID,
-             GetDefaultAudioDeviceID(Direction::OUTPUT, Role::COMMUNICATION)},
+             GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION)},
           }}});
   return;
 }
