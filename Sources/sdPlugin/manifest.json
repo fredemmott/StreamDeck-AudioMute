@@ -1,36 +1,36 @@
 {
   "Actions": [
     {
-      "Icon": "mic-off", 
+      "Icon": "mic-off",
       "States": [
         {
           "Image": "mic-off"
         },
-		{
-		  "Image": "mic-on"
-		}
+        {
+          "Image": "mic-on"
+        }
       ],
       "SupportedInMultiActions": false,
-	  "Name": "Audio Mute",
+      "Name": "Audio Mute",
       "Tooltip": "This action toggles mute for audio devices (e.g. microphones, speakers)",
       "UUID": "com.fredemmott.micmutetoggle.toggle"
     }
-  ], 
-  "Author": "Fred Emmott", 
-  "CodePath": "sdmicmute.exe", 
+  ],
+  "Author": "Fred Emmott",
+  "CodePath": "sdmicmute.exe",
   "Description": "Toggle the mute for audio devices, such as microphones or speakers.",
   "PropertyInspectorPath": "propertyinspector/index.html",
-  "Name": "Audio Mute", 
-  "Icon": "mic-off", 
-  "Version": "2.1",
+  "Name": "Audio Mute",
+  "Icon": "mic-off",
+  "Version": "2.2",
   "OS": [
     {
-        "Platform": "windows", 
-        "MinimumVersion" : "10"
+      "Platform": "windows",
+      "MinimumVersion": "10"
     }
   ],
   "SDKVersion": 2,
   "Software": {
-    "MinimumVersion" : "4.1"
+    "MinimumVersion": "4.1"
   }
 }
