@@ -60,6 +60,15 @@ jobs:
     - name: Display downloaded files
       run: ls -R
       working-directory: ${{runner.temp}}/artifacts
+    - name: Check if this is a release push
+      id: ref
+      run: |
+        if echo ${{github.ref}} | grep --silent refs/tags/v; then
+          echo "::set-output name=is-release::true"
+          echo "::set-output name=tag::$(echo ${{github.ref}} | awk -F/ '{print $NF}')"
+        else
+          echo "::set-output name=is-release::false"
+        fi
     - name: Create Draft Release
       id: create-release
       if: steps.ref.outputs.is-release == 'true'
