@@ -26,11 +26,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: distributiontool-v1.1
-          clean: false
+          path: distributiontool
       - name: Build .streamDeckPlugin
         run: |
           set +e
-          ./DistributionTool.exe -b \
+          ./distributiontool/DistributionTool.exe -b \
             -i com.fredemmott.micmutetoggle.sdPlugin \
             -o .
           if [ $? -eq 0 ]; then
