@@ -1,0 +1,48 @@
+name: Continuous Integration
+on: [push, pull_request]
+jobs:
+  build:
+    name: Build ${{matrix.os}}/${{matrix.build-type}}
+    runs-on: ${{matrix.os}}-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Make build directory
+        run: cmake -E make_directory build
+      - name: Configure
+        working-directory: build
+        run: |
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
+            "-DCMAKE_INSTALL_PREFIX=$(echo "${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin" | tr "\\\\" /)"
+        shell: bash
+      - name: Compile
+        working-directory: build
+        run: cmake --build . --config ${{matrix.build-type}} --parallel
+      - name: Install
+        working-directory: build
+        run: cmake --install . --config ${{matrix.build-type}}
+      - name: Checkout DistributionTool
+        uses: actions/checkout@v2
+        with:
+          ref: distributiontool-v1.1
+      - name: Build .streamDeckPlugin
+        run: |
+          set +e
+          ./DistributionTool -b \
+            -i ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin \
+            -o .
+          if [ $? -eq 0 ]; then
+            echo "Distribution tool failed"
+            exit 1
+          else
+            set -e
+            test -f com.fredemmott.micmutetoggle.streamDeckPlugin
+          fi
+      - name: Upload .streamDeckPlugin
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{matrix.build-type}}-com.fredemmott.micmutetoggle.streamDeckPlugin
+          path: com.fredemmott.micmutetoggle.streamDeckPlugin
+    strategy:
+      matrix:
+        build-type: [Release, Debug]
