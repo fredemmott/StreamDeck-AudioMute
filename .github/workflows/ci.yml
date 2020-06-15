@@ -24,11 +24,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: distributiontool-v1.1
+          path: ${{runner.temp}}/DistributionTool
       - name: Build .streamDeckPlugin
         working-directory: ${{runner.temp}}
         run: |
           set +e
-          ./DistributionTool.exe -b \
+          ./DistributionTool/DistributionTool.exe -b \
             -i com.fredemmott.micmutetoggle.sdPlugin \
             -o .
           if [ $? -eq 0 ]; then
@@ -43,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{matrix.build-type}}-com.fredemmott.micmutetoggle.streamDeckPlugin
-          path: com.fredemmott.micmutetoggle.streamDeckPlugin
+          path: ${{runner.temp}}/com.fredemmott.micmutetoggle.streamDeckPlugin
     strategy:
       matrix:
         os: [windows]
