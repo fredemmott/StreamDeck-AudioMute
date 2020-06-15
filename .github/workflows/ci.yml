@@ -30,7 +30,7 @@ jobs:
       - name: Build .streamDeckPlugin
         run: |
           set +e
-          .\DistributionTool.exe -b \
+          ./DistributionTool.exe -b \
             -i com.fredemmott.micmutetoggle.sdPlugin \
             -o .
           if [ $? -eq 0 ]; then
