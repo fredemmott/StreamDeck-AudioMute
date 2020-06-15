@@ -11,8 +11,12 @@ LICENSE file.
 **/
 //==============================================================================
 
+#include <StreamDeckSDK/ESDBasePlugin.h>
+
 #include <mutex>
-#include "Common/ESDBasePlugin.h"
+#include <set>
+
+using json = nlohmann::json;
 
 class CallBackTimer;
 

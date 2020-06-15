@@ -12,11 +12,13 @@ LICENSE file.
 //==============================================================================
 
 #include "MyStreamDeckPlugin.h"
+
+#include <StreamDeckSDK/EPLJSONUtils.h>
+#include <StreamDeckSDK/ESDConnectionManager.h>
+
 #include <atomic>
 
 #include "AudioFunctions.h"
-#include "Common/EPLJSONUtils.h"
-#include "Common/ESDConnectionManager.h"
 
 namespace {
 const char* DEFAULT_INPUT_ID = "com.fredemmott.sdmute.deviceIds.defaultInput";
@@ -28,12 +30,11 @@ const char* COMMUNICATIONS_OUTPUT_ID
 }// namespace
 
 void to_json(json& j, const AudioDeviceInfo& device) {
-  j = json(
-    {{"id", device.id},
-     {"interfaceName", device.interfaceName},
-     {"endpointName", device.endpointName},
-     {"displayName", device.displayName},
-     {"state", device.state}});
+  j = json({{"id", device.id},
+            {"interfaceName", device.interfaceName},
+            {"endpointName", device.endpointName},
+            {"displayName", device.displayName},
+            {"state", device.state}});
 }
 
 void to_json(json& j, const AudioDeviceState& state) {
@@ -65,34 +66,33 @@ void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
   if (mContextCallbacks.find(context) != mContextCallbacks.end()) {
     RemoveAudioDeviceMuteUnmuteCallback(mContextCallbacks[context]);
   }
-  DebugPrint(
-    "Installing callback for %s",
-    ConvertPluginAudioDeviceID(mContextDeviceIDs[context]).c_str());
   mContextCallbacks[context] = AddAudioDeviceMuteUnmuteCallback(
     ConvertPluginAudioDeviceID(mContextDeviceIDs[context]),
     [this, context](bool isMuted) {
-      DebugPrint("In callback - %s", isMuted ? "muted" : "unmuted");
       mVisibleContextsMutex.lock();
       mConnectionManager->SetState(isMuted ? 0 : 1, context);
       mVisibleContextsMutex.unlock();
     });
-  DebugPrint("Got callback? %s", mContextCallbacks[context] ? "yes" : "no");
   mVisibleContextsMutex.unlock();
 }
 
 std::string MyStreamDeckPlugin::ConvertPluginAudioDeviceID(
   const std::string& dev) {
   if (dev == DEFAULT_INPUT_ID) {
-    return GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT);
+    return GetDefaultAudioDeviceID(
+      AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT);
   }
   if (dev == DEFAULT_OUTPUT_ID) {
-    return GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT);
+    return GetDefaultAudioDeviceID(
+      AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT);
   }
   if (dev == COMMUNICATIONS_INPUT_ID) {
-    return GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION);
+    return GetDefaultAudioDeviceID(
+      AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION);
   }
   if (dev == COMMUNICATIONS_OUTPUT_ID) {
-    return GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION);
+    return GetDefaultAudioDeviceID(
+      AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION);
   }
   return dev;
 }
@@ -188,13 +188,17 @@ void MyStreamDeckPlugin::SendToPlugin(
          {"defaultDevices",
           {
             {DEFAULT_INPUT_ID,
-             GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT)},
+             GetDefaultAudioDeviceID(
+               AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT)},
             {DEFAULT_OUTPUT_ID,
-             GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT)},
+             GetDefaultAudioDeviceID(
+               AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT)},
             {COMMUNICATIONS_INPUT_ID,
-             GetDefaultAudioDeviceID(AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION)},
+             GetDefaultAudioDeviceID(
+               AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION)},
             {COMMUNICATIONS_OUTPUT_ID,
-             GetDefaultAudioDeviceID(AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION)},
+             GetDefaultAudioDeviceID(
+               AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION)},
           }}});
   return;
 }
