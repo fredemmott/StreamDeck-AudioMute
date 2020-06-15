@@ -25,6 +25,9 @@ namespace {
 }
 
 std::string WCharPtrToString(LPCWSTR in) {
+  if (!in) {
+    return std::string();
+  }
   size_t utf8_len = WideCharToMultiByte(CP_UTF8, 0, in, -1, 0, 0, 0, 0);
   std::string buf(utf8_len, 0);
   WideCharToMultiByte(CP_UTF8, 0, in, -1, buf.data(), utf8_len, 0, 0);
@@ -156,12 +159,24 @@ std::string GetDefaultAudioDeviceID(
   AudioDeviceRole role) {
   CComPtr<IMMDeviceEnumerator> de;
   de.CoCreateInstance(__uuidof(MMDeviceEnumerator));
+  if (!de) {
+    ESDDebug("Failed to create MMDeviceEnumerator");
+    return;
+  }
   CComPtr<IMMDevice> device;
   de->GetDefaultAudioEndpoint(
     AudioDeviceDirectionToEDataFlow(direction), AudioDeviceRoleToERole(role),
     &device);
+  if (!device) {
+    ESDDebug("No default audio device");
+    return std::string();
+  }
   LPWSTR deviceID;
   device->GetId(&deviceID);
+  if (!deviceID) {
+    ESDDebug("No default audio device ID");
+    return std::string();
+  }
   return WCharPtrToString(deviceID);
 }
 
@@ -326,7 +341,6 @@ class DefaultChangeCallback : public IMMNotificationClient {
     EDataFlow flow,
     ERole winAudioDeviceRole,
     LPCWSTR defaultDeviceID) override {
-    ESDDebug("in native default device callback");
     AudioDeviceRole role;
     switch (winAudioDeviceRole) {
       case ERole::eMultimedia:
@@ -410,6 +424,17 @@ AddDefaultAudioDeviceChangeCallback(DefaultChangeCallbackFun cb) {
   return new DefaultChangeCallbackHandle(impl, de);
 }
 
+void RemoveDefaultAudioDeviceChangeCallback(
+  DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE _handle) {
+  if (!_handle) {
+    return;
+  }
+  ESDDebug("RemoveDefaultAudioDeviceChangeCallback called");
+  const auto handle = reinterpret_cast<DefaultChangeCallbackHandle*>(_handle);
+  delete handle;
+  return;
+}
+
 #ifdef HAVE_FEEDBACK_SOUNDS
 namespace {
 std::wstring sMuteWav;
@@ -453,13 +478,3 @@ void PlayFeedbackSound(MuteAction action) {
   PlaySound(feedbackWav.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);
 }
 #endif
-
-void RemoveDefaultAudioDeviceChangeCallback(
-  DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE _handle) {
-  if (!_handle) {
-    return;
-  }
-  const auto handle = reinterpret_cast<DefaultChangeCallbackHandle*>(_handle);
-  delete handle;
-  return;
-}
