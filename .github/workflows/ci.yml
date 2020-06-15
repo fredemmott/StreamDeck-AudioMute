@@ -28,7 +28,7 @@ jobs:
         run: |
           set +e
           ./DistributionTool.exe -b \
-            -i "$(echo ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin | tr "\\\\" /)" \
+            -i "$(echo '${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin' | tr "\\\\" "\\\\\\\\")" \
             -o .
           if [ $? -eq 0 ]; then
             echo "Distribution tool failed"
