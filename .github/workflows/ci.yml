@@ -25,10 +25,11 @@ jobs:
         with:
           ref: distributiontool-v1.1
       - name: Build .streamDeckPlugin
+        working-directory: ${{runner.temp}}
         run: |
           set +e
           ./DistributionTool.exe -b \
-            -i "$(echo '${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin' | tr "\\\\" "\\\\\\\\")" \
+            -i com.fredemmott.micmutetoggle.sdPlugin \
             -o .
           if [ $? -eq 0 ]; then
             echo "Distribution tool failed"
