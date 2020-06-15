@@ -11,10 +11,9 @@ jobs:
       - name: Configure
         working-directory: build
         run: |
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} \
-            "-DCMAKE_INSTALL_PREFIX=$(echo "${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin" | tr "\\\\" /)"
-        shell: bash
+          cmake .. `
+            -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
+            "-DCMAKE_INSTALL_PREFIX=${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin"
       - name: Compile
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} --parallel
@@ -29,7 +28,7 @@ jobs:
         run: |
           set +e
           ./DistributionTool.exe -b \
-            -i ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin \
+            -i "$(echo ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin | tr "\\\\" /)" \
             -o .
           if [ $? -eq 0 ]; then
             echo "Distribution tool failed"
