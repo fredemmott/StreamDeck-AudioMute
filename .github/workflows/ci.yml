@@ -28,7 +28,7 @@ jobs:
       - name: Build .streamDeckPlugin
         run: |
           set +e
-          ./DistributionTool -b \
+          ./DistributionTool.exe -b \
             -i ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin \
             -o .
           if [ $? -eq 0 ]; then
@@ -38,6 +38,7 @@ jobs:
             set -e
             test -f com.fredemmott.micmutetoggle.streamDeckPlugin
           fi
+        shell: bash
       - name: Upload .streamDeckPlugin
         uses: actions/upload-artifact@v2
         with:
