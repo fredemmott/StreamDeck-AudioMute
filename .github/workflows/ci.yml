@@ -13,7 +13,7 @@ jobs:
         run: |
           cmake .. `
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
-            "-DCMAKE_INSTALL_PREFIX=${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin"
+            "-DCMAKE_INSTALL_PREFIX=${{github.workspace}}/inst/com.fredemmott.micmutetoggle.sdPlugin"
       - name: Compile
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} --parallel
@@ -24,12 +24,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: distributiontool-v1.1
-          path: ${{runner.temp}}/DistributionTool
+          clean: false
       - name: Build .streamDeckPlugin
-        working-directory: ${{runner.temp}}
+        working-directory: install
         run: |
           set +e
-          ./DistributionTool/DistributionTool.exe -b \
+          ../DistributionTool.exe -b \
             -i com.fredemmott.micmutetoggle.sdPlugin \
             -o .
           if [ $? -eq 0 ]; then
