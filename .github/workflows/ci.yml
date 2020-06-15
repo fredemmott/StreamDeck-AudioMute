@@ -45,4 +45,5 @@ jobs:
           path: com.fredemmott.micmutetoggle.streamDeckPlugin
     strategy:
       matrix:
+        os: [windows]
         build-type: [Release, Debug]
