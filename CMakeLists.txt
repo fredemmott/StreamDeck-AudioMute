@@ -1,6 +1,22 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
-project(com.fredemmott.micmutetoggle.sdPlugin VERSION 2.4)
+# CMAKE_MSVC_RUNTIME_POLICY support
+cmake_policy(SET CMP0091 NEW)
+# Statically link the MSVC runtime
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+project(
+  com.fredemmott.micmutetoggle.sdPlugin
+  VERSION 2.4
+  LANGUAGES CXX
+)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_CXX_EXTENSIONS false)
+if (MSVC)
+  add_definitions("/Zc:__cplusplus -DUNICODE=1")
+endif()
 
 if (APPLE)
   set(
@@ -26,12 +42,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 message(STATUS "Install dir: ${CMAKE_INSTALL_PREFIX}")
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED true)
-set(CMAKE_CXX_EXTENSIONS false)
-if (MSVC)
-  add_definitions("/Zc:__cplusplus -DUNICODE=1")
-endif()
 include_directories("${CMAKE_SOURCE_DIR}")
 
 include("StreamDeckSDK.cmake")
