@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(com.fredemmott.micmutetoggle.sdPlugin VERSION 2.3)
+project(com.fredemmott.micmutetoggle.sdPlugin VERSION 2.4)
 
 if (APPLE)
   set(
