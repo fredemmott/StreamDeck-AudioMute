@@ -453,7 +453,7 @@ void initWavPaths() {
   auto idx = path.find_last_of(L'\\');
   const auto dir = path.substr(0, idx + 1);
   auto utf8 = WCharPtrToString(dir.c_str());
-  ESDDebug("got executable dir: '%s', %d", utf8.c_str(), idx);
+  ESDDebug("got executable dir: '{}', {}", utf8, idx);
   sMuteWav = dir + L"mute.wav";
   sUnmuteWav = dir + L"unmute.wav";
 }
@@ -474,7 +474,7 @@ void PlayFeedbackSound(MuteAction action) {
   const auto feedbackWav
     = (action == MuteAction::MUTE) ? muteWavPath() : unmuteWavPath();
   const auto utf8 = WCharPtrToString(feedbackWav.c_str());
-  ESDDebug("Playing feedback sound '%s'", utf8.c_str());
+  ESDDebug("Playing feedback sound '{}'", utf8);
   PlaySound(feedbackWav.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);
 }
 #endif
