@@ -10,10 +10,16 @@ jobs:
           path: source
       - name: Make build directory
         run: cmake -E make_directory build
+      - name: Fetch code-signing key
+        if: matrix.os == 'windows'
+        env:
+          CODE_SIGNING_PFX_BASE64: ${{ secrets.CODE_SIGNING_PFX_BASE64 }}
+        run: '[System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) | Set-Content ${{runner.temp}}/MyCert.pfx -AsByteStream'
       - name: Configure
         working-directory: build
         run: |
           cmake ${{github.workspace}}\source `
+            "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
             "-DCMAKE_INSTALL_PREFIX=${{github.workspace}}/com.fredemmott.micmutetoggle.sdPlugin"
       - name: Compile
