@@ -8,7 +8,12 @@ namespace {
 template <class T>
 T GetAudioObjectProperty(
   AudioObjectID id,
-  const AudioObjectPropertyAddress& prop);
+  const AudioObjectPropertyAddress& prop) {
+  T value;
+  UInt32 size = sizeof(value);
+  AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &value);
+  return value;
+}
 
 template <>
 std::string GetAudioObjectProperty<std::string>(
@@ -85,16 +90,13 @@ std::string GetDefaultAudioDeviceID(
 }
 
 bool IsAudioDeviceMuted(const std::string& id) {
-  UInt32 muted;
-  UInt32 mutedSize = sizeof(muted);
   const auto [native_id, direction] = ParseDeviceID(id);
-  AudioObjectPropertyAddress prop{kAudioDevicePropertyMute,
-                                  direction == AudioDeviceDirection::INPUT
-                                    ? kAudioDevicePropertyScopeInput
-                                    : kAudioDevicePropertyScopeOutput,
-                                  0};
-  AudioObjectGetPropertyData(native_id, &prop, 0, nullptr, &mutedSize, &muted);
-  return muted;
+  return GetAudioObjectProperty<UInt32>(
+    native_id,
+    {kAudioDevicePropertyMute,
+     direction == AudioDeviceDirection::INPUT ? kAudioObjectPropertyScopeInput
+                                              : kAudioObjectPropertyScopeOutput,
+     kAudioObjectPropertyElementMaster});
 };
 
 void MuteAudioDevice(const std::string& id) {
@@ -122,14 +124,15 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
 
   std::map<std::string, AudioDeviceInfo> out;
 
-  // The array of devices will always contain both input and output, even if we
-  // set the scope above; instead filter inside the loop
+  // The array of devices will always contain both input and output, even if
+  // we set the scope above; instead filter inside the loop
   const auto scope = direction == AudioDeviceDirection::INPUT
                        ? kAudioObjectPropertyScopeInput
                        : kAudioObjectPropertyScopeOutput;
   for (const auto id : ids) {
-    // ... and we do that filtering by finding out how many channels there are.
-    // No channels for a given direction? Not a valid device for that direction.
+    // ... and we do that filtering by finding out how many channels there
+    // are. No channels for a given direction? Not a valid device for that
+    // direction.
     UInt32 num_streams;
     prop
       = {kAudioDevicePropertyStreams, scope, kAudioObjectPropertyScopeGlobal};
@@ -137,12 +140,13 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
     if (num_streams == 0) {
       continue;
     }
-    AudioDeviceInfo info{.id = MakeDeviceID(id, direction),
-    .interfaceName = GetAudioObjectProperty<std::string>(
-      id, {kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal,
-           kAudioObjectPropertyElementMaster}),
-                         .direction = direction,
-                         .state = AudioDeviceState::CONNECTED};
+    AudioDeviceInfo info{
+      .id = MakeDeviceID(id, direction),
+      .interfaceName = GetAudioObjectProperty<std::string>(
+        id, {kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal,
+             kAudioObjectPropertyElementMaster}),
+      .direction = direction,
+      .state = AudioDeviceState::CONNECTED};
 
     prop = {kAudioDevicePropertyDataSource, scope,
             kAudioObjectPropertyElementMaster};
@@ -168,3 +172,40 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
 AudioDeviceState GetAudioDeviceState(const std::string& _id) {
   return AudioDeviceState::CONNECTED;
 }
+
+struct MuteCallbackHandleImpl {
+  typedef std::function<void(bool isMuted)> UserCallback;
+  MuteCallbackHandleImpl(
+    UserCallback cb,
+    AudioDeviceID device,
+    AudioDeviceDirection direction)
+    : mProp{kAudioDevicePropertyMute,
+            direction == AudioDeviceDirection::INPUT
+              ? kAudioObjectPropertyScopeInput
+              : kAudioObjectPropertyScopeOutput,
+            kAudioObjectPropertyElementMaster},
+      mCallback(cb),
+      mDevice(device) {
+    AudioObjectAddPropertyListener(mDevice, &mProp, &OSCallback, this);
+  }
+
+  ~MuteCallbackHandleImpl() {
+    AudioObjectRemovePropertyListener(mDevice, &mProp, &OSCallback, this);
+  }
+
+ private:
+  const AudioObjectPropertyAddress mProp;
+  AudioDeviceID mDevice;
+  UserCallback mCallback;
+
+  static OSStatus OSCallback(
+    AudioDeviceID id,
+    UInt32 _prop_count,
+    const AudioObjectPropertyAddress* _props,
+    void* data) {
+    auto self = reinterpret_cast<MuteCallbackHandleImpl*>(data);
+    const bool muted = GetAudioObjectProperty<UInt32>(id, self->mProp);
+    self->mCallback(muted);
+    return 0;
+  }
+};
