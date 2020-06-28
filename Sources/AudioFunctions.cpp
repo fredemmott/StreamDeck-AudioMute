@@ -241,24 +241,27 @@ class VolumeCOMCallback : public IAudioEndpointVolumeCallback {
 
 }// namespace
 
-struct MuteCallbackHandle::Impl {
+struct MuteCallbackHandleImpl {
   CComPtr<VolumeCOMCallback> impl;
   CComPtr<IAudioEndpointVolume> dev;
 
-  Impl(CComPtr<VolumeCOMCallback> impl, CComPtr<IAudioEndpointVolume> dev) {
+  MuteCallbackHandleImpl(
+    CComPtr<VolumeCOMCallback> impl,
+    CComPtr<IAudioEndpointVolume> dev) {
     this->impl = impl;
     this->dev = dev;
   }
 
-  ~Impl() {
+  ~MuteCallbackHandleImpl() {
     dev->UnregisterControlChangeNotify(impl);
   }
 
-  Impl(const VolumeCOMCallback& other) = delete;
-  Impl& operator=(const VolumeCOMCallback& other) = delete;
+  MuteCallbackHandleImpl(const VolumeCOMCallback& other) = delete;
+  MuteCallbackHandleImpl& operator=(const VolumeCOMCallback& other) = delete;
 };
 
-MuteCallbackHandle::MuteCallbackHandle(Impl* impl) : mImpl(impl) {
+MuteCallbackHandle::MuteCallbackHandle(MuteCallbackHandleImpl* impl)
+  : AudioDeviceCallbackHandle(impl) {
 }
 MuteCallbackHandle::~MuteCallbackHandle() {
 }
@@ -277,7 +280,7 @@ std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
     return nullptr;
   }
   return std::make_unique<MuteCallbackHandle>(
-    new MuteCallbackHandle::Impl(impl, dev));
+    new MuteCallbackHandleImpl(impl, dev));
 }
 
 namespace {

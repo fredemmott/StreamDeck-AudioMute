@@ -24,9 +24,9 @@ enum class AudioDeviceState {
 
 struct AudioDeviceInfo {
   std::string id;
-  std::string interfaceName; // e.g. "Generic USB Audio Device"
-  std::string endpointName; // e.g. "Speakers"
-  std::string displayName; // e.g. "Generic USB Audio Device (Speakers)"
+  std::string interfaceName;// e.g. "Generic USB Audio Device"
+  std::string endpointName;// e.g. "Speakers"
+  std::string displayName;// e.g. "Generic USB Audio Device (Speakers)"
   AudioDeviceDirection direction;
   AudioDeviceState state;
 };
@@ -44,16 +44,28 @@ bool IsAudioDeviceMuted(const std::string& deviceID);
 void MuteAudioDevice(const std::string& deviceID);
 void UnmuteAudioDevice(const std::string& deviceID);
 
-class MuteCallbackHandle {
+template <class TImpl>
+class AudioDeviceCallbackHandle {
  public:
-  struct Impl;
-  MuteCallbackHandle(Impl*);
-  ~MuteCallbackHandle();
+  AudioDeviceCallbackHandle(TImpl* impl) : mImpl(impl) {
+  }
+  ~AudioDeviceCallbackHandle() {
+  }
 
-  MuteCallbackHandle(const MuteCallbackHandle& other) = delete;
-  MuteCallbackHandle& operator=(const MuteCallbackHandle& other) = delete;
+  AudioDeviceCallbackHandle(const AudioDeviceCallbackHandle& other) = delete;
+  AudioDeviceCallbackHandle& operator=(const AudioDeviceCallbackHandle& other)
+    = delete;
+
  private:
-  std::unique_ptr<Impl> mImpl;
+  std::unique_ptr<TImpl> mImpl;
+};
+
+struct MuteCallbackHandleImpl;
+class MuteCallbackHandle final
+  : public AudioDeviceCallbackHandle<MuteCallbackHandleImpl> {
+ public:
+  MuteCallbackHandle(MuteCallbackHandleImpl* impl);
+  ~MuteCallbackHandle();
 };
 
 std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
