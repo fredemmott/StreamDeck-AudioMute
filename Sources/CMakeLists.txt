@@ -27,8 +27,9 @@ endif()
 
 if(APPLE)
 FIND_LIBRARY(COREAUDIO_LIBRARY CoreAudio)
+FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundation)
 add_executable(audiodevices_test AudioFunctionsMacOS.cpp audiodevices_test.cpp)
-target_link_libraries(audiodevices_test StreamDeckSDK ${COREAUDIO_LIBRARY})
+target_link_libraries(audiodevices_test StreamDeckSDK ${COREAUDIO_LIBRARY} ${COREFOUNDATION_LIBRARY})
 endif()
 
 add_executable(
