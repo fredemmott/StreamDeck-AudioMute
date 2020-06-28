@@ -1,15 +1,37 @@
-add_executable(
-  sdmicmute
+set(
+  SOURCES
   Action.cpp
-  AudioFunctions.cpp
   DefaultAudioDevices.cpp
   MuteAction.cpp
   MyStreamDeckPlugin.cpp
-  PlayWavFile.cpp
-  StringEncoding.cpp
   ToggleMuteAction.cpp
   UnmuteAction.cpp
   main.cpp
+)
+
+if(WIN32)
+  list(
+    APPEND SOURCES
+    StringEncoding.cpp
+    PlayWavFileWindows.cpp
+    AudioFunctionsWindows.cpp
+  )
+endif()
+if(APPLE)
+  list(
+    APPEND SOURCES
+    PlayWavFileMacOS.cpp
+    AudioFunctionsMacOS.cpp
+  )
+endif()
+
+FIND_LIBRARY(COREAUDIO_LIBRARY CoreAudio)
+add_executable(audiodevices_test AudioFunctionsMacOS.cpp audiodevices_test.cpp)
+target_link_libraries(audiodevices_test StreamDeckSDK ${COREAUDIO_LIBRARY})
+
+add_executable(
+  sdmicmute
+  ${SOURCES}
 )
 target_link_libraries(sdmicmute StreamDeckSDK Winmm)
 set_target_properties(sdmicmute PROPERTIES CXX_STANDARD 20)

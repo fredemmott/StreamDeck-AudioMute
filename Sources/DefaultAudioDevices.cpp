@@ -44,5 +44,5 @@ std::string DefaultAudioDevices::GetSpecialDeviceID(AudioDeviceDirection directi
   if (direction == AudioDeviceDirection::OUTPUT && role == AudioDeviceRole::COMMUNICATION) {
     return COMMUNICATIONS_OUTPUT_ID;
   }
-  __assume(0);
+  return std::string();
 }
