@@ -5,7 +5,7 @@
 int main(int argc, char** argv) {
   const auto device = GetDefaultAudioDeviceID(
     AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT);
-  fmt::print("Default ID: {} {}\n", device, std::stoi(device));
+  fmt::print("Default ID: {}\n", device);
   fmt::print("Muted? {}. Muting...\n", IsAudioDeviceMuted(device));
   MuteAudioDevice(device);
   fmt::print("Muted? {}... sleep(3)\n", IsAudioDeviceMuted(device));

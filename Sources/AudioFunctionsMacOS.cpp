@@ -3,20 +3,48 @@
 
 #include "AudioFunctions.h"
 
+namespace {
+std::string MakeDeviceID(UInt32 native, AudioDeviceDirection dir) {
+  return fmt::format(
+    "{}/{}", native, dir == AudioDeviceDirection::INPUT ? "input" : "output");
+}
+
+std::tuple<UInt32, AudioDeviceDirection> ParseDeviceID(const std::string& id) {
+  auto idx = id.find_first_of('/');
+  return std::make_tuple(
+    std::stoi(id.substr(0, idx)), id.substr(idx + 1) == "input"
+                                    ? AudioDeviceDirection::INPUT
+                                    : AudioDeviceDirection::OUTPUT);
+}
+
+void SetAudioDeviceIsMuted(const std::string& id, bool muted) {
+  const UInt32 native = muted;
+  const auto [native_id, direction] = ParseDeviceID(id);
+  AudioObjectPropertyAddress prop{kAudioDevicePropertyMute,
+                                  direction == AudioDeviceDirection::INPUT
+                                    ? kAudioDevicePropertyScopeInput
+                                    : kAudioDevicePropertyScopeOutput,
+                                  0};
+  AudioObjectSetPropertyData(
+    native_id, &prop, 0, NULL, sizeof(native), &native);
+}
+
+}// namespace
+
 std::string GetDefaultAudioDeviceID(
   AudioDeviceDirection direction,
   AudioDeviceRole _role) {
-  AudioDeviceID theAnswer = 0;
-  UInt32 theSize = sizeof(AudioDeviceID);
-  AudioObjectPropertyAddress theAddress
+  AudioDeviceID native_id = 0;
+  UInt32 native_id_size = sizeof(native_id);
+  AudioObjectPropertyAddress prop
     = {direction == AudioDeviceDirection::INPUT
          ? kAudioHardwarePropertyDefaultInputDevice
          : kAudioHardwarePropertyDefaultOutputDevice,
        kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster};
 
-  OSStatus theError = AudioObjectGetPropertyData(
-    kAudioObjectSystemObject, &theAddress, 0, NULL, &theSize, &theAnswer);
-  return fmt::format("{}", theAnswer);
+  AudioObjectGetPropertyData(
+    kAudioObjectSystemObject, &prop, 0, NULL, &native_id_size, &native_id);
+  return MakeDeviceID(native_id, direction);
 }
 
 bool IsAudioDeviceMuted(const std::string& id) {
@@ -30,19 +58,9 @@ bool IsAudioDeviceMuted(const std::string& id) {
 };
 
 void MuteAudioDevice(const std::string& id) {
-  AudioObjectPropertyAddress prop{kAudioDevicePropertyMute,
-                                  /* FIXME */ kAudioDevicePropertyScopeOutput,
-                                  0};
-  const UInt32 muted = 1;
-  AudioObjectSetPropertyData(
-    std::stoi(id), &prop, 0, NULL, sizeof(muted), &muted);
+  SetAudioDeviceIsMuted(id, true);
 }
 
 void UnmuteAudioDevice(const std::string& id) {
-  AudioObjectPropertyAddress prop{kAudioDevicePropertyMute,
-                                  /* FIXME */ kAudioDevicePropertyScopeOutput,
-                                  0};
-  const UInt32 muted = 0;
-  AudioObjectSetPropertyData(
-    std::stoi(id), &prop, 0, NULL, sizeof(muted), &muted);
+  SetAudioDeviceIsMuted(id, false);
 }
