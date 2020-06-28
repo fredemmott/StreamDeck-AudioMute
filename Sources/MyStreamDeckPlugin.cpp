@@ -53,7 +53,7 @@ void to_json(json& j, const AudioDeviceState& state) {
 }
 
 MyStreamDeckPlugin::MyStreamDeckPlugin() {
-  CoInitialize(NULL);// initialize COM for the main thread
+  CoInitializeEx(NULL, COINIT_MULTITHREADED);// initialize COM for the main thread
 }
 
 MyStreamDeckPlugin::~MyStreamDeckPlugin() {

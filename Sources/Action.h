@@ -4,6 +4,7 @@
 #include <string>
 
 class ESDConnectionManager;
+class DefaultChangeCallbackHandle;
 class MuteCallbackHandle;
 
 class Action {
@@ -45,6 +46,7 @@ class Action {
   Settings mSettings;
   std::string mRealDeviceID;
   std::unique_ptr<MuteCallbackHandle> mMuteUnmuteCallbackHandle;
+  std::unique_ptr<DefaultChangeCallbackHandle> mDefaultChangeCallbackHandle;
   ESDConnectionManager* mESDConnection = nullptr;
 
   void RealDeviceDidChange();

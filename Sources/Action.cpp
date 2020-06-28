@@ -1,6 +1,7 @@
 #include "Action.h"
 
 #include <StreamDeckSDK/EPLJSONUtils.h>
+#include <StreamDeckSDK/ESDLogger.h>
 
 #include "AudioFunctions.h"
 #include "DefaultAudioDevices.h"
@@ -41,6 +42,27 @@ void Action::DidReceiveSettings(const nlohmann::json& json) {
   this->mSettings = std::move(settings);
   if (deviceDidChange) {
     mRealDeviceID = DefaultAudioDevices::GetRealDeviceID(mSettings.deviceID);
+    if (mRealDeviceID != mSettings.deviceID) {
+      ESDDebug("Registering default device change callback for {}", GetContext());
+      mDefaultChangeCallbackHandle = std::move(
+        AddDefaultAudioDeviceChangeCallback(
+          [this](AudioDeviceDirection direction, AudioDeviceRole role, const std::string& device) {
+            ESDDebug("In default device change callback for {}", GetContext());
+            if (DefaultAudioDevices::GetSpecialDeviceID(direction, role) != mSettings.deviceID) {
+              ESDDebug("Not this device");
+              return;
+            }
+            if (device == mRealDeviceID) {
+              ESDLog("Default default change for context {} didn't actually change", GetContext());
+              return;
+            }
+            mRealDeviceID = device;
+            ESDDebug("Invoking RealDeviceDidChange from callback for context {}", GetContext());
+            RealDeviceDidChange();
+          }
+        )
+      );
+    }
     RealDeviceDidChange();
   }
 }

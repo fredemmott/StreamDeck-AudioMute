@@ -43,24 +43,37 @@ ERole AudioDeviceRoleToERole(const AudioDeviceRole role) {
   __assume(0);
 }
 
-CComPtr<IMMDevice> DeviceIDToDevice(const std::string& in) {
+CComPtr<IMMDevice> DeviceIDToDevice(const std::string& device_id) {
+  static std::map<std::string, CComPtr<IMMDevice>> cache;
+  const auto cached = cache.find(device_id);
+  if (cached != cache.end()) {
+    return cached->second;
+  }
+
   CComPtr<IMMDeviceEnumerator> de;
   de.CoCreateInstance(__uuidof(MMDeviceEnumerator));
   CComPtr<IMMDevice> device;
-  auto utf16 = Utf8ToUtf16(in);
+  auto utf16 = Utf8ToUtf16(device_id);
   de->GetDevice(utf16.c_str(), &device);
+  cache.emplace(device_id, device);
   return device;
 }
 
 CComPtr<IAudioEndpointVolume> DeviceIDToAudioEndpointVolume(
-  const std::string& deviceID) {
-  auto device = DeviceIDToDevice(deviceID);
+  const std::string& device_id) {
+  static std::map<std::string, CComPtr<IAudioEndpointVolume>> cache;
+  const auto cached = cache.find(device_id);
+  if (cached != cache.end()) {
+    return cached->second;
+  }
+  auto device = DeviceIDToDevice(device_id);
   if (!device) {
     return nullptr;
   }
   CComPtr<IAudioEndpointVolume> volume;
   device->Activate(
     __uuidof(IAudioEndpointVolume), CLSCTX_ALL, nullptr, (void**)&volume);
+  cache[device_id] = volume;
   return volume;
 }
 
@@ -206,7 +219,10 @@ void UnmuteAudioDevice(const std::string& deviceID) {
 namespace {
 class VolumeCOMCallback : public IAudioEndpointVolumeCallback {
  public:
-  VolumeCOMCallback(std::function<void(bool isMuted)> cb) : mCB(cb), mRefs(1) {
+  VolumeCOMCallback(std::function<void(bool isMuted)> cb) : mCB(cb), mRefs(0) {
+  }
+
+  ~VolumeCOMCallback() {
   }
 
   virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ret)
@@ -226,6 +242,7 @@ class VolumeCOMCallback : public IAudioEndpointVolumeCallback {
   virtual ULONG __stdcall Release() override {
     if (InterlockedDecrement(&mRefs) == 0) {
       delete this;
+      return 0;
     }
     return mRefs;
   }
@@ -247,9 +264,8 @@ struct MuteCallbackHandleImpl {
 
   MuteCallbackHandleImpl(
     CComPtr<VolumeCOMCallback> impl,
-    CComPtr<IAudioEndpointVolume> dev) {
-    this->impl = impl;
-    this->dev = dev;
+    CComPtr<IAudioEndpointVolume> dev)
+    : impl(impl), dev(dev) {
   }
 
   ~MuteCallbackHandleImpl() {
@@ -273,10 +289,9 @@ std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
   if (!dev) {
     return nullptr;
   }
-  auto impl = new VolumeCOMCallback(cb);
+  auto impl = CComPtr(new VolumeCOMCallback(cb));
   auto ret = dev->RegisterControlChangeNotify(impl);
   if (ret != S_OK) {
-    delete impl;
     return nullptr;
   }
   return std::make_unique<MuteCallbackHandle>(
@@ -309,6 +324,7 @@ class DefaultChangeCOMCallback : public IMMNotificationClient {
   virtual ULONG __stdcall Release() override {
     if (InterlockedDecrement(&mRefs) == 0) {
       delete this;
+      return 0;
     }
     return mRefs;
   }

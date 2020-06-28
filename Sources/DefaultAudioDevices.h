@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AudioFunctions.h"
 #include <string>
 
 struct DefaultAudioDevices {
@@ -9,4 +10,5 @@ struct DefaultAudioDevices {
   static const std::string COMMUNICATIONS_OUTPUT_ID;
 
   static std::string GetRealDeviceID(const std::string& dev);
+  static std::string GetSpecialDeviceID(AudioDeviceDirection, AudioDeviceRole);
 };

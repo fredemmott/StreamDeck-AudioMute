@@ -3,6 +3,7 @@
 #include "ToggleMuteAction.h"
 
 #include <StreamDeckSDK/ESDConnectionManager.h>
+#include <StreamDeckSDK/ESDLogger.h>
 
 #include "AudioFunctions.h"
 #include "MuteAction.h"
@@ -18,6 +19,7 @@ ToggleMuteAction::ToggleMuteAction(
 }
 
 void ToggleMuteAction::MuteStateDidChange(bool isMuted) {
+  ESDDebug("MuteStateDidChange to {} for context {}", isMuted, GetContext());
   GetESD()->SetState(isMuted ? 0 : 1, GetContext());
 }
 
