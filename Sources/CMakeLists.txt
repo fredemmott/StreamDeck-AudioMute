@@ -25,9 +25,11 @@ if(APPLE)
   )
 endif()
 
+if(APPLE)
 FIND_LIBRARY(COREAUDIO_LIBRARY CoreAudio)
 add_executable(audiodevices_test AudioFunctionsMacOS.cpp audiodevices_test.cpp)
 target_link_libraries(audiodevices_test StreamDeckSDK ${COREAUDIO_LIBRARY})
+endif()
 
 add_executable(
   sdmicmute
