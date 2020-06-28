@@ -14,7 +14,7 @@ enum class AudioDeviceDirection {
   INPUT,
 };
 
-enum class MuteAction {
+enum class FeedbackSoundEvent{
   UNMUTE,
   MUTE,
 };
@@ -46,7 +46,8 @@ void SetDefaultAudioDeviceID(
   const std::string& deviceID);
 
 bool IsAudioDeviceMuted(const std::string& deviceID);
-void SetIsAudioDeviceMuted(const std::string& deviceID, MuteAction);
+void MuteAudioDevice(const std::string& deviceID);
+void UnmuteAudioDevice(const std::string& deviceID);
 
 typedef void* AUDIO_DEVICE_MUTE_CALLBACK_HANDLE;
 AUDIO_DEVICE_MUTE_CALLBACK_HANDLE AddAudioDeviceMuteUnmuteCallback(
@@ -62,5 +63,5 @@ AddDefaultAudioDeviceChangeCallback(
 void RemoveDefaultAudioDeviceChangeCallback(
   DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE);
 #ifdef HAVE_FEEDBACK_SOUNDS
-void PlayFeedbackSound(MuteAction action);
+void PlayFeedbackSound(FeedbackSoundEvent action);
 #endif

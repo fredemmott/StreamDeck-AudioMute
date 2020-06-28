@@ -23,7 +23,9 @@ LICENSE file.
 #include "Action.h"
 #include "AudioFunctions.h"
 #include "DefaultAudioDevices.h"
+#include "MuteAction.h"
 #include "ToggleMuteAction.h"
+#include "UnmuteAction.h"
 
 void to_json(json& j, const AudioDeviceInfo& device) {
   j = json({{"id", device.id},
@@ -62,8 +64,12 @@ void MyStreamDeckPlugin::KeyUpForAction(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
-  GetOrCreateAction(inAction, inContext, inPayload["settings"])
-    ->KeyUp(inPayload["settings"]);
+  auto action = GetOrCreateAction(inAction, inContext);
+  if (!action) {
+    ESDLog("No action for keyup - {} {}", inAction, inContext);
+    return;
+  }
+  action->KeyUp(inPayload["settings"]);
 }
 
 void MyStreamDeckPlugin::WillAppearForAction(
@@ -71,7 +77,12 @@ void MyStreamDeckPlugin::WillAppearForAction(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
-  GetOrCreateAction(inAction, inContext, inPayload["settings"])->WillAppear(inPayload["settings"]);
+  auto action = GetOrCreateAction(inAction, inContext);
+  if (!action) {
+    ESDLog("No action for WillAppear - {} {}", inAction, inContext);
+    return;
+  }
+  action->WillAppear(inPayload["settings"]);
 }
 
 void MyStreamDeckPlugin::SendToPlugin(
@@ -79,6 +90,11 @@ void MyStreamDeckPlugin::SendToPlugin(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDevice) {
+  if (!GetOrCreateAction(inAction, inContext)) {
+    ESDLog(
+      "Received plugin request for unknown action {} {}", inAction, inContext);
+    return;
+  }
   const auto event = EPLJSONUtils::GetStringByName(inPayload, "event");
 
   if (event != "getDeviceList") {
@@ -91,13 +107,17 @@ void MyStreamDeckPlugin::SendToPlugin(
          {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
          {"defaultDevices",
           {{DefaultAudioDevices::DEFAULT_INPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::DEFAULT_INPUT_ID)},
+            DefaultAudioDevices::GetRealDeviceID(
+              DefaultAudioDevices::DEFAULT_INPUT_ID)},
            {DefaultAudioDevices::DEFAULT_OUTPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::DEFAULT_OUTPUT_ID)},
+            DefaultAudioDevices::GetRealDeviceID(
+              DefaultAudioDevices::DEFAULT_OUTPUT_ID)},
            {DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)},
+            DefaultAudioDevices::GetRealDeviceID(
+              DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)},
            {DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID)}}}});
+            DefaultAudioDevices::GetRealDeviceID(
+              DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID)}}}});
   return;
 }
 
@@ -106,17 +126,17 @@ void MyStreamDeckPlugin::DidReceiveSettings(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDevice) {
-  json settings;
-  EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
-
-  GetOrCreateAction(inAction, inContext, settings)
-    ->DidReceiveSettings(settings);
+  auto action = GetOrCreateAction(inAction, inContext);
+  if (!action) {
+    ESDLog("No action for DidReceiveSettings: {} {}", inAction, inContext);
+    return;
+  }
+  action->DidReceiveSettings(inPayload["settings"]);
 }
 
 std::shared_ptr<Action> MyStreamDeckPlugin::GetOrCreateAction(
   const std::string& action,
-  const std::string& context,
-  const nlohmann::json& settings) {
+  const std::string& context) {
   std::scoped_lock lock(mActionsMutex);
   auto it = mActions.find(context);
   if (it != mActions.end()) {
@@ -124,13 +144,29 @@ std::shared_ptr<Action> MyStreamDeckPlugin::GetOrCreateAction(
     return it->second;
   }
 
+  ESDLog("Creating action {} with context {}", action, context);
+
   if (action == ToggleMuteAction::ACTION_ID) {
-    ESDLog("Creating action {} with context {}", action, context);
-    auto ptr = std::make_shared<ToggleMuteAction>(mConnectionManager, context);
-    mActions.emplace(context, ptr);
-    return ptr;
+    ESDDebug("Creating ToggleMuteAction");
+    auto impl = std::make_shared<ToggleMuteAction>(mConnectionManager, context);
+    mActions.emplace(context, impl);
+    return impl;
   }
 
-  ESDLog("Attempted to create invalid action '{}'", action);
+  if (action == MuteAction::ACTION_ID) {
+    ESDDebug("Creating MuteAction");
+    auto impl = std::make_shared<MuteAction>(mConnectionManager, context);
+    mActions.emplace(context, impl);
+    return impl;
+  }
+
+  if (action == UnmuteAction::ACTION_ID) {
+    ESDDebug("Creating UnmuteAction");
+    auto impl = std::make_shared<UnmuteAction>(mConnectionManager, context);
+    mActions.emplace(context, impl);
+    return impl;
+  }
+
+  ESDLog("Didn't recognize action '{}'", action);
   return nullptr;
 }

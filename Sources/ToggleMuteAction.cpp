@@ -24,8 +24,12 @@ void ToggleMuteAction::WillAppear() {
 }
 
 void ToggleMuteAction::KeyUp() {
-  const auto muted = IsAudioDeviceMuted(GetRealDeviceID());
-  const auto action = muted ? MuteAction::UNMUTE : MuteAction::MUTE;
-  SetIsAudioDeviceMuted(GetRealDeviceID(), action);
-  PlayFeedbackSound(action);
+  const auto device(GetRealDeviceID());
+  if (IsAudioDeviceMuted(device)) {
+    UnmuteAudioDevice(device);
+    PlayFeedbackSound(FeedbackSoundEvent::UNMUTE);
+  } else {
+    MuteAudioDevice(device);
+    PlayFeedbackSound(FeedbackSoundEvent::MUTE);
+  }
 }

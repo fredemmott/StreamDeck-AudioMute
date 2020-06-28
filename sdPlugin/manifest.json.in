@@ -11,9 +11,34 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Name": "Audio Mute",
+      "Name": "Toggle Mute",
       "Tooltip": "This action toggles mute for audio devices (e.g. microphones, speakers)",
       "UUID": "com.fredemmott.micmutetoggle.toggle"
+    },
+    {
+      "Icon": "mic-off",
+      "States": [
+        {
+          "Image": "mic-off"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Name": "Mute",
+      "Tooltip": "This action mutes an audio devices (e.g. microphones, speakers)",
+      "UUID": "com.fredemmott.micmutetoggle.mute"
+    },
+    {
+      "Icon": "mic-on",
+			"States": [
+				{
+					"Image": "mic-on"
+				}
+			],
+
+      "SupportedInMultiActions": true,
+      "Name": "Unmute",
+      "Tooltip": "This action unmutes an audio devices (e.g. microphones, speakers)",
+      "UUID": "com.fredemmott.micmutetoggle.unmute"
     }
   ],
   "Author": "Fred Emmott",

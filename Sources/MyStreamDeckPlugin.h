@@ -53,5 +53,5 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
   std::mutex mActionsMutex;
   std::map<std::string, std::shared_ptr<Action>> mActions;
 
-  std::shared_ptr<Action> GetOrCreateAction(const std::string& action, const std::string& context, const nlohmann::json& settings);
+  std::shared_ptr<Action> GetOrCreateAction(const std::string& action, const std::string& context);
 };

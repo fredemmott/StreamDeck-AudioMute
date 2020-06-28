@@ -203,20 +203,22 @@ bool IsAudioDeviceMuted(const std::string& deviceID) {
   return ret;
 }
 
-void SetIsAudioDeviceMuted(const std::string& deviceID, MuteAction action) {
+void MuteAudioDevice(const std::string& deviceID) {
   auto volume = DeviceIDToAudioEndpointVolume(deviceID);
   if (!volume) {
     return;
   }
-
-  if (action == MuteAction::MUTE) {
-    volume->SetMute(true, nullptr);
-    return;
-  }
-
-  assert(action == MuteAction::UNMUTE);
-  volume->SetMute(false, nullptr);
+  volume->SetMute(true, nullptr);
 }
+
+void UnmuteAudioDevice(const std::string& deviceID) {
+	auto volume = DeviceIDToAudioEndpointVolume(deviceID);
+	if (!volume) {
+		return;
+	}
+	volume->SetMute(false, nullptr);
+}
+
 
 namespace {
 class VolumeCallback : public IAudioEndpointVolumeCallback {
@@ -466,9 +468,9 @@ std::wstring unmuteWavPath() {
 }
 }// namespace
 
-void PlayFeedbackSound(MuteAction action) {
+void PlayFeedbackSound(FeedbackSoundEvent event) {
   const auto feedbackWav
-    = (action == MuteAction::MUTE) ? muteWavPath() : unmuteWavPath();
+    = (event == FeedbackSoundEvent::MUTE) ? muteWavPath() : unmuteWavPath();
   const auto utf8 = WCharPtrToString(feedbackWav.c_str());
   ESDDebug("Playing feedback sound '{}'", utf8);
   PlaySound(feedbackWav.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);

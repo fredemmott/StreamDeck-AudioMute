@@ -3,8 +3,10 @@ add_executable(
   Action.cpp
   AudioFunctions.cpp
   DefaultAudioDevices.cpp
+  MuteAction.cpp
   MyStreamDeckPlugin.cpp
   ToggleMuteAction.cpp
+  UnmuteAction.cpp
   main.cpp
 )
 target_link_libraries(sdmicmute StreamDeckSDK Winmm)
