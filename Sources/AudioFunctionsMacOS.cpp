@@ -4,18 +4,34 @@
 #include "AudioFunctions.h"
 
 namespace {
-std::string MakeDeviceID(UInt32 id, AudioDeviceDirection dir) {
-  CFStringRef uid;
-  UInt32 uid_size = sizeof(uid);
-  AudioObjectPropertyAddress prop{kAudioDevicePropertyDeviceUID,
-                                  kAudioObjectPropertyScopeGlobal,
-                                  kAudioObjectPropertyElementMaster};
-  AudioObjectGetPropertyData(id, &prop, 0, nullptr, &uid_size, &uid);
 
-  auto utf8 = CFStringGetCStringPtr(uid, kCFStringEncodingUTF8);
-  CFRelease(uid);
+template <class T>
+T GetAudioObjectProperty(
+  AudioObjectID id,
+  const AudioObjectPropertyAddress& prop);
+
+template <>
+std::string GetAudioObjectProperty<std::string>(
+  UInt32 id,
+  const AudioObjectPropertyAddress& prop) {
+  CFStringRef value = nullptr;
+  UInt32 size = sizeof(value);
+  AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &value);
+
+  if (!value) {
+    return std::string();
+  }
+  auto ret = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+  CFRelease(value);
+  return ret;
+}
+
+std::string MakeDeviceID(UInt32 id, AudioDeviceDirection dir) {
+  const auto uid = GetAudioObjectProperty<std::string>(
+    id, {kAudioDevicePropertyDeviceUID, kAudioObjectPropertyScopeGlobal,
+         kAudioObjectPropertyElementMaster});
   return fmt::format(
-    "{}/{}", dir == AudioDeviceDirection::INPUT ? "input" : "output", utf8);
+    "{}/{}", dir == AudioDeviceDirection::INPUT ? "input" : "output", uid);
 }
 
 std::tuple<UInt32, AudioDeviceDirection> ParseDeviceID(const std::string& id) {
@@ -122,29 +138,18 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
       continue;
     }
     AudioDeviceInfo info{.id = MakeDeviceID(id, direction),
+    .interfaceName = GetAudioObjectProperty<std::string>(
+      id, {kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal,
+           kAudioObjectPropertyElementMaster}),
                          .direction = direction,
                          .state = AudioDeviceState::CONNECTED};
-    CFStringRef value = NULL;
-    UInt32 size = sizeof(value);
-    // kAudioObjectPropertyName: "Built-in Microphone" or "Built-in Output"
-    prop = {kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal,
-            kAudioObjectPropertyElementMaster};
-    AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &value);
-    if (!size) {
-      continue;
-    }
-    info.interfaceName = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
-    CFRelease(value);
-    if (num_streams == 0) {
-      continue;
-    }
 
     prop = {kAudioDevicePropertyDataSource, scope,
             kAudioObjectPropertyElementMaster};
     UInt32 data_source;
     size = sizeof(data_source);
     AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &data_source);
-    value = nullptr;
+    CFStringRef value = nullptr;
     AudioValueTranslation translate{&data_source, sizeof(data_source), &value,
                                     sizeof(value)};
     size = sizeof(translate);
