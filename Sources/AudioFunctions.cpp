@@ -287,9 +287,9 @@ namespace {
 typedef std::function<
   void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>
   DefaultChangeCallbackFun;
-class DefaultChangeCallback : public IMMNotificationClient {
+class DefaultChangeCOMCallback : public IMMNotificationClient {
  public:
-  DefaultChangeCallback(DefaultChangeCallbackFun cb) : mCB(cb), mRefs(1) {
+  DefaultChangeCOMCallback(DefaultChangeCallbackFun cb) : mCB(cb), mRefs(1) {
   }
 
   virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ret)
@@ -360,29 +360,39 @@ class DefaultChangeCallback : public IMMNotificationClient {
   long mRefs;
 };
 
-struct DefaultChangeCallbackHandle {
-  CComPtr<DefaultChangeCallback> impl;
+}// namespace
+
+struct DefaultChangeCallbackHandleImpl {
+  CComPtr<DefaultChangeCOMCallback> impl;
   CComPtr<IMMDeviceEnumerator> enumerator;
 
-  DefaultChangeCallbackHandle(
-    CComPtr<DefaultChangeCallback> impl,
+  DefaultChangeCallbackHandleImpl(
+    CComPtr<DefaultChangeCOMCallback> impl,
     CComPtr<IMMDeviceEnumerator> enumerator) {
     this->impl = impl;
     this->enumerator = enumerator;
   }
 
-  DefaultChangeCallbackHandle(const DefaultChangeCallbackHandle& copied)
-    = delete;
-
-  ~DefaultChangeCallbackHandle() {
-    ESDDebug("unregistering native callback");
+  ~DefaultChangeCallbackHandleImpl() {
     enumerator->UnregisterEndpointNotificationCallback(this->impl);
   }
+
+  DefaultChangeCallbackHandleImpl(const DefaultChangeCallbackHandleImpl& copied)
+    = delete;
+  DefaultChangeCallbackHandleImpl& operator=(
+    const DefaultChangeCallbackHandleImpl& other)
+    = delete;
 };
 
-}// namespace
+DefaultChangeCallbackHandle::DefaultChangeCallbackHandle(
+  DefaultChangeCallbackHandleImpl* impl)
+  : AudioDeviceCallbackHandle(impl) {
+}
 
-DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE
+DefaultChangeCallbackHandle::~DefaultChangeCallbackHandle() {
+}
+
+std::unique_ptr<DefaultChangeCallbackHandle>
 AddDefaultAudioDeviceChangeCallback(DefaultChangeCallbackFun cb) {
   CComPtr<IMMDeviceEnumerator> de;
   de.CoCreateInstance(__uuidof(MMDeviceEnumerator));
@@ -390,23 +400,13 @@ AddDefaultAudioDeviceChangeCallback(DefaultChangeCallbackFun cb) {
     ESDDebug("failed to get enumerator");
     return nullptr;
   }
-  CComPtr<DefaultChangeCallback> impl(new DefaultChangeCallback(cb));
+  CComPtr<DefaultChangeCOMCallback> impl(new DefaultChangeCOMCallback(cb));
   if (de->RegisterEndpointNotificationCallback(impl) != S_OK) {
-    ESDDebug("failed to register callback");
+    ESDDebug("failed to register default callback");
     return nullptr;
   }
 
-  ESDDebug("returning new callback handle");
-  return new DefaultChangeCallbackHandle(impl, de);
-}
-
-void RemoveDefaultAudioDeviceChangeCallback(
-  DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE _handle) {
-  if (!_handle) {
-    return;
-  }
-  ESDDebug("RemoveDefaultAudioDeviceChangeCallback called");
-  const auto handle = reinterpret_cast<DefaultChangeCallbackHandle*>(_handle);
-  delete handle;
-  return;
+  ESDDebug("returning new default callback handle");
+  return std::make_unique<DefaultChangeCallbackHandle>(
+    new DefaultChangeCallbackHandleImpl(impl, de));
 }

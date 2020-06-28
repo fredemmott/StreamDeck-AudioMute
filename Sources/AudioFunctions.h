@@ -72,10 +72,15 @@ std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
   const std::string& deviceID,
   std::function<void(bool isMuted)>);
 
-typedef void* DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE;
-DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE
-AddDefaultAudioDeviceChangeCallback(
-  std::function<
-    void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>);
-void RemoveDefaultAudioDeviceChangeCallback(
-  DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE);
+struct DefaultChangeCallbackHandleImpl;
+class DefaultChangeCallbackHandle final
+  : public AudioDeviceCallbackHandle<DefaultChangeCallbackHandleImpl> {
+ public:
+  DefaultChangeCallbackHandle(DefaultChangeCallbackHandleImpl* impl);
+  ~DefaultChangeCallbackHandle();
+};
+
+std::unique_ptr<DefaultChangeCallbackHandle>
+  AddDefaultAudioDeviceChangeCallback(
+    std::function<
+      void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>);
