@@ -204,9 +204,9 @@ void UnmuteAudioDevice(const std::string& deviceID) {
 }
 
 namespace {
-class VolumeCallback : public IAudioEndpointVolumeCallback {
+class VolumeCOMCallback : public IAudioEndpointVolumeCallback {
  public:
-  VolumeCallback(std::function<void(bool isMuted)> cb) : mCB(cb), mRefs(1) {
+  VolumeCOMCallback(std::function<void(bool isMuted)> cb) : mCB(cb), mRefs(1) {
   }
 
   virtual HRESULT __stdcall QueryInterface(const IID& iid, void** ret)
@@ -239,54 +239,45 @@ class VolumeCallback : public IAudioEndpointVolumeCallback {
   long mRefs;
 };
 
-struct VolumeCallbackHandle {
-  std::string deviceID;
-  CComPtr<VolumeCallback> impl;
+}// namespace
+
+struct MuteCallbackHandle::Impl {
+  CComPtr<VolumeCOMCallback> impl;
   CComPtr<IAudioEndpointVolume> dev;
 
-  VolumeCallbackHandle(
-    const std::string& deviceID,
-    CComPtr<VolumeCallback> impl,
-    CComPtr<IAudioEndpointVolume> dev) {
-    this->deviceID = deviceID;
+  Impl(CComPtr<VolumeCOMCallback> impl, CComPtr<IAudioEndpointVolume> dev) {
     this->impl = impl;
     this->dev = dev;
   }
 
-  VolumeCallbackHandle(const VolumeCallback& copied) = delete;
-
-  ~VolumeCallbackHandle() {
+  ~Impl() {
     dev->UnregisterControlChangeNotify(impl);
   }
+
+  Impl(const VolumeCOMCallback& other) = delete;
+  Impl& operator=(const VolumeCOMCallback& other) = delete;
 };
 
-}// namespace
+MuteCallbackHandle::MuteCallbackHandle(Impl* impl) : mImpl(impl) {
+}
+MuteCallbackHandle::~MuteCallbackHandle() {
+}
 
-AUDIO_DEVICE_MUTE_CALLBACK_HANDLE
-AddAudioDeviceMuteUnmuteCallback(
+std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
   const std::string& deviceID,
   std::function<void(bool isMuted)> cb) {
   auto dev = DeviceIDToAudioEndpointVolume(deviceID);
   if (!dev) {
     return nullptr;
   }
-  auto impl = new VolumeCallback(cb);
+  auto impl = new VolumeCOMCallback(cb);
   auto ret = dev->RegisterControlChangeNotify(impl);
   if (ret != S_OK) {
     delete impl;
     return nullptr;
   }
-  return new VolumeCallbackHandle(deviceID, impl, dev);
-}
-
-void RemoveAudioDeviceMuteUnmuteCallback(
-  AUDIO_DEVICE_MUTE_CALLBACK_HANDLE _handle) {
-  if (!_handle) {
-    return;
-  }
-  const auto handle = reinterpret_cast<VolumeCallbackHandle*>(_handle);
-  delete handle;
-  return;
+  return std::make_unique<MuteCallbackHandle>(
+    new MuteCallbackHandle::Impl(impl, dev));
 }
 
 namespace {

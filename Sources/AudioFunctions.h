@@ -44,11 +44,21 @@ bool IsAudioDeviceMuted(const std::string& deviceID);
 void MuteAudioDevice(const std::string& deviceID);
 void UnmuteAudioDevice(const std::string& deviceID);
 
-typedef void* AUDIO_DEVICE_MUTE_CALLBACK_HANDLE;
-AUDIO_DEVICE_MUTE_CALLBACK_HANDLE AddAudioDeviceMuteUnmuteCallback(
+class MuteCallbackHandle {
+ public:
+  struct Impl;
+  MuteCallbackHandle(Impl*);
+  ~MuteCallbackHandle();
+
+  MuteCallbackHandle(const MuteCallbackHandle& other) = delete;
+  MuteCallbackHandle& operator=(const MuteCallbackHandle& other) = delete;
+ private:
+  std::unique_ptr<Impl> mImpl;
+};
+
+std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
   const std::string& deviceID,
   std::function<void(bool isMuted)>);
-void RemoveAudioDeviceMuteUnmuteCallback(AUDIO_DEVICE_MUTE_CALLBACK_HANDLE);
 
 typedef void* DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE;
 DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE

@@ -1,9 +1,9 @@
 #include "Action.h"
 
+#include <StreamDeckSDK/EPLJSONUtils.h>
+
 #include "AudioFunctions.h"
 #include "DefaultAudioDevices.h"
-
-#include <StreamDeckSDK/EPLJSONUtils.h>
 
 using json = nlohmann::json;
 
@@ -14,17 +14,12 @@ void from_json(const json& json, Action::Settings& settings) {
     = EPLJSONUtils::GetBoolByName(json, "feedbackSounds", true);
 }
 
-Action::Action(
-  ESDConnectionManager* esd_connection,
-  const std::string& context)
+Action::Action(ESDConnectionManager* esd_connection, const std::string& context)
   : mESDConnection(esd_connection), mContext(context) {
 }
 
 Action::~Action() {
-  if (mMuteUnmuteCallbackHandle) {
-    RemoveAudioDeviceMuteUnmuteCallback(mMuteUnmuteCallbackHandle);
-  }
-};
+}
 
 const Action::Settings& Action::GetSettings() const {
   return mSettings;
@@ -65,11 +60,8 @@ void Action::KeyUp(const nlohmann::json& settings) {
 }
 
 void Action::RealDeviceDidChange() {
-  if (mMuteUnmuteCallbackHandle) {
-    RemoveAudioDeviceMuteUnmuteCallback(mMuteUnmuteCallbackHandle);
-  }
   const auto device(GetRealDeviceID());
-  mMuteUnmuteCallbackHandle = AddAudioDeviceMuteUnmuteCallback(
-    device, [this](bool isMuted) { this->MuteStateDidChange(isMuted); });
+  mMuteUnmuteCallbackHandle = std::move(AddAudioDeviceMuteUnmuteCallback(
+    device, [this](bool isMuted) { this->MuteStateDidChange(isMuted); }));
   MuteStateDidChange(IsAudioDeviceMuted(device));
 }
