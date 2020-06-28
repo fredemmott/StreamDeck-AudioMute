@@ -209,3 +209,17 @@ struct MuteCallbackHandleImpl {
     return 0;
   }
 };
+
+MuteCallbackHandle::MuteCallbackHandle(MuteCallbackHandleImpl* impl)
+  : AudioDeviceCallbackHandle(impl) {
+}
+MuteCallbackHandle::~MuteCallbackHandle() {
+}
+
+std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
+  const std::string& deviceID,
+  std::function<void(bool isMuted)> cb) {
+  const auto [id, direction] = ParseDeviceID(deviceID);
+  return std::make_unique<MuteCallbackHandle>(
+    new MuteCallbackHandleImpl(cb, id, direction));
+}
