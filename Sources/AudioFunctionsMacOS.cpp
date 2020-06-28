@@ -100,7 +100,7 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
   AudioObjectGetPropertyDataSize(
     kAudioObjectSystemObject, &prop, 0, nullptr, &count);
 
-  UInt32 ids[count];
+  AudioDeviceID ids[count];
   UInt32 size = sizeof(ids);
   AudioObjectGetPropertyData(
     kAudioObjectSystemObject, &prop, 0, nullptr, &size, &ids);
@@ -112,8 +112,7 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
   const auto scope = direction == AudioDeviceDirection::INPUT
                        ? kAudioObjectPropertyScopeInput
                        : kAudioObjectPropertyScopeOutput;
-  for (UInt32 i = 0; i < count; ++i) {
-    const auto id = ids[i];
+  for (const auto id : ids) {
     // ... and we do that filtering by finding out how many channels there are.
     // No channels for a given direction? Not a valid device for that direction.
     UInt32 num_streams;
@@ -134,10 +133,27 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
     if (!size) {
       continue;
     }
-    info.displayName = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+    info.interfaceName = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
     CFRelease(value);
 
-    out.emplace(info.id, info);
+      prop = {kAudioDevicePropertyDataSource, scope, kAudioObjectPropertyElementMaster};
+      UInt32 data_source;
+      size = sizeof(data_source);
+      AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &data_source);
+      value = nullptr;
+      AudioValueTranslation translate{&data_source, sizeof(data_source), &value,
+                              sizeof(value)};
+      size = sizeof(translate);
+      prop
+        = {kAudioDevicePropertyDataSourceNameForIDCFString,
+           scope, kAudioObjectPropertyElementMaster};
+      AudioObjectGetPropertyData(
+        id, &prop, 0, nullptr, &size, &translate);
+      info.displayName = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+      info.endpointName = info.displayName;
+      CFRelease(value);
+
+      out.emplace(info.id, info);
   }
   return out;
 }

@@ -7,8 +7,9 @@ int main(int argc, char** argv) {
   for (const auto& [id, info] :
        GetAudioDeviceList(AudioDeviceDirection::INPUT)) {
     fmt::print(
-      "- Key: {}\n  Id: {}\n  Name: {}\n  Direction: {}\n", id, info.id,
+      "- Key: {}\n  Id: {}\n  Name: {}\n  Interface: {}\n  Direction: {}\n", id, info.id,
       info.displayName,
+      info.interfaceName,
       info.direction == AudioDeviceDirection::INPUT ? "input" : "output");
   }
   fmt::print("Output devices:\n");
