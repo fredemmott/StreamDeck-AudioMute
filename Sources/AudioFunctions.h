@@ -17,7 +17,6 @@ enum class AudioDeviceDirection {
 enum class MuteAction {
   UNMUTE,
   MUTE,
-  TOGGLE,
 };
 
 enum class AudioDeviceState {

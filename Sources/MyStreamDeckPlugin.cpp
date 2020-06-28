@@ -15,19 +15,15 @@ LICENSE file.
 
 #include <StreamDeckSDK/EPLJSONUtils.h>
 #include <StreamDeckSDK/ESDConnectionManager.h>
+#include <StreamDeckSDK/ESDLogger.h>
 
 #include <atomic>
+#include <mutex>
 
+#include "Action.h"
 #include "AudioFunctions.h"
-
-namespace {
-const char* DEFAULT_INPUT_ID = "com.fredemmott.sdmute.deviceIds.defaultInput";
-const char* DEFAULT_OUTPUT_ID = "com.fredemmott.sdmute.deviceIds.defaultOutput";
-const char* COMMUNICATIONS_INPUT_ID
-  = "com.fredemmott.sdmute.deviceIds.communicationsInput";
-const char* COMMUNICATIONS_OUTPUT_ID
-  = "com.fredemmott.sdmute.deviceIds.communicationsOutput";
-}// namespace
+#include "DefaultAudioDevices.h"
+#include "ToggleMuteAction.h"
 
 void to_json(json& j, const AudioDeviceInfo& device) {
   j = json({{"id", device.id},
@@ -61,66 +57,13 @@ MyStreamDeckPlugin::MyStreamDeckPlugin() {
 MyStreamDeckPlugin::~MyStreamDeckPlugin() {
 }
 
-void MyStreamDeckPlugin::UpdateContextCallback(const std::string& context) {
-  mVisibleContextsMutex.lock();
-  if (mContextCallbacks.find(context) != mContextCallbacks.end()) {
-    RemoveAudioDeviceMuteUnmuteCallback(mContextCallbacks[context]);
-  }
-  mContextCallbacks[context] = AddAudioDeviceMuteUnmuteCallback(
-    ConvertPluginAudioDeviceID(mContextDeviceIDs[context]),
-    [this, context](bool isMuted) {
-      mVisibleContextsMutex.lock();
-      mConnectionManager->SetState(isMuted ? 0 : 1, context);
-      mVisibleContextsMutex.unlock();
-    });
-  mVisibleContextsMutex.unlock();
-}
-
-std::string MyStreamDeckPlugin::ConvertPluginAudioDeviceID(
-  const std::string& dev) {
-  if (dev == DEFAULT_INPUT_ID) {
-    return GetDefaultAudioDeviceID(
-      AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT);
-  }
-  if (dev == DEFAULT_OUTPUT_ID) {
-    return GetDefaultAudioDeviceID(
-      AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT);
-  }
-  if (dev == COMMUNICATIONS_INPUT_ID) {
-    return GetDefaultAudioDeviceID(
-      AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION);
-  }
-  if (dev == COMMUNICATIONS_OUTPUT_ID) {
-    return GetDefaultAudioDeviceID(
-      AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION);
-  }
-  return dev;
-}
-
-void MyStreamDeckPlugin::KeyDownForAction(
-  const std::string& inAction,
-  const std::string& inContext,
-  const json& inPayload,
-  const std::string& inDeviceID) {
-  // Nothing to do
-}
-
 void MyStreamDeckPlugin::KeyUpForAction(
   const std::string& inAction,
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
-  mVisibleContextsMutex.lock();
-  const auto id = ConvertPluginAudioDeviceID(mContextDeviceIDs[inContext]);
-  SetIsAudioDeviceMuted(id, MuteAction::TOGGLE);
-  if (mContextFeedbackSounds[inContext]) {
-    if (IsAudioDeviceMuted(id)) {
-      PlayFeedbackSound(MuteAction::MUTE);
-    } else {
-      PlayFeedbackSound(MuteAction::UNMUTE);
-    }
-  }
-  mVisibleContextsMutex.unlock();
+  GetOrCreateAction(inAction, inContext, inPayload["settings"])
+    ->KeyUp(inPayload["settings"]);
 }
 
 void MyStreamDeckPlugin::WillAppearForAction(
@@ -128,46 +71,7 @@ void MyStreamDeckPlugin::WillAppearForAction(
   const std::string& inContext,
   const json& inPayload,
   const std::string& inDeviceID) {
-  // Remember the context
-  mVisibleContextsMutex.lock();
-  mVisibleContexts.insert(inContext);
-
-  json settings;
-  EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
-  const std::string audioDevice = EPLJSONUtils::GetStringByName(
-    settings, "deviceID", COMMUNICATIONS_INPUT_ID);
-  mContextDeviceIDs[inContext] = audioDevice;
-  mContextFeedbackSounds[inContext]
-    = EPLJSONUtils::GetBoolByName(settings, "feedbackSounds", true);
-  mConnectionManager->SetState(
-    IsAudioDeviceMuted(ConvertPluginAudioDeviceID(audioDevice)) ? 0 : 1,
-    inContext);
-  mVisibleContextsMutex.unlock();
-  UpdateContextCallback(inContext);
-}
-
-void MyStreamDeckPlugin::WillDisappearForAction(
-  const std::string& inAction,
-  const std::string& inContext,
-  const json& inPayload,
-  const std::string& inDeviceID) {
-  // Remove the context
-  mVisibleContextsMutex.lock();
-  mVisibleContexts.erase(inContext);
-  mVisibleContextsMutex.unlock();
-}
-
-void MyStreamDeckPlugin::DeviceDidConnect(
-  const std::string& inDeviceID,
-  const json& inDeviceInfo) {
-  // Nothing to do
-}
-
-void MyStreamDeckPlugin::DeviceDidDisconnect(const std::string& inDeviceID) {
-  // Nothing to do
-}
-
-void MyStreamDeckPlugin::DidReceiveGlobalSettings(const json&) {
+  GetOrCreateAction(inAction, inContext, inPayload["settings"])->WillAppear(inPayload["settings"]);
 }
 
 void MyStreamDeckPlugin::SendToPlugin(
@@ -186,20 +90,14 @@ void MyStreamDeckPlugin::SendToPlugin(
          {"outputDevices", GetAudioDeviceList(AudioDeviceDirection::OUTPUT)},
          {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
          {"defaultDevices",
-          {
-            {DEFAULT_INPUT_ID,
-             GetDefaultAudioDeviceID(
-               AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT)},
-            {DEFAULT_OUTPUT_ID,
-             GetDefaultAudioDeviceID(
-               AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT)},
-            {COMMUNICATIONS_INPUT_ID,
-             GetDefaultAudioDeviceID(
-               AudioDeviceDirection::INPUT, AudioDeviceRole::COMMUNICATION)},
-            {COMMUNICATIONS_OUTPUT_ID,
-             GetDefaultAudioDeviceID(
-               AudioDeviceDirection::OUTPUT, AudioDeviceRole::COMMUNICATION)},
-          }}});
+          {{DefaultAudioDevices::DEFAULT_INPUT_ID,
+            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::DEFAULT_INPUT_ID)},
+           {DefaultAudioDevices::DEFAULT_OUTPUT_ID,
+            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::DEFAULT_OUTPUT_ID)},
+           {DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
+            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)},
+           {DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID,
+            DefaultAudioDevices::GetRealDeviceID(DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID)}}}});
   return;
 }
 
@@ -210,9 +108,29 @@ void MyStreamDeckPlugin::DidReceiveSettings(
   const std::string& inDevice) {
   json settings;
   EPLJSONUtils::GetObjectByName(inPayload, "settings", settings);
-  mContextDeviceIDs[inContext] = EPLJSONUtils::GetStringByName(
-    settings, "deviceID", COMMUNICATIONS_INPUT_ID);
-  mContextFeedbackSounds[inContext]
-    = EPLJSONUtils::GetBoolByName(settings, "feedbackSounds", true);
-  UpdateContextCallback(inContext);
+
+  GetOrCreateAction(inAction, inContext, settings)
+    ->DidReceiveSettings(settings);
+}
+
+std::shared_ptr<Action> MyStreamDeckPlugin::GetOrCreateAction(
+  const std::string& action,
+  const std::string& context,
+  const nlohmann::json& settings) {
+  std::scoped_lock lock(mActionsMutex);
+  auto it = mActions.find(context);
+  if (it != mActions.end()) {
+    ESDDebug("Found existing action: {} {}", action, context);
+    return it->second;
+  }
+
+  if (action == ToggleMuteAction::ACTION_ID) {
+    ESDLog("Creating action {} with context {}", action, context);
+    auto ptr = std::make_shared<ToggleMuteAction>(mConnectionManager, context);
+    mActions.emplace(context, ptr);
+    return ptr;
+  }
+
+  ESDLog("Attempted to create invalid action '{}'", action);
+  return nullptr;
 }

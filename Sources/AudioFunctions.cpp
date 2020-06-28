@@ -36,8 +36,7 @@ std::string WCharPtrToString(LPCWSTR in) {
 }
 
 std::wstring Utf8StrToWString(const std::string& in) {
-  int wchar_len
-    = MultiByteToWideChar(CP_UTF8, 0, in.c_str(), in.size(), 0, 0);
+  int wchar_len = MultiByteToWideChar(CP_UTF8, 0, in.c_str(), in.size(), 0, 0);
   std::wstring buf(wchar_len, 0);
   MultiByteToWideChar(CP_UTF8, 0, in.c_str(), in.size(), buf.data(), wchar_len);
   return buf;
@@ -209,16 +208,14 @@ void SetIsAudioDeviceMuted(const std::string& deviceID, MuteAction action) {
   if (!volume) {
     return;
   }
+
   if (action == MuteAction::MUTE) {
     volume->SetMute(true, nullptr);
-  } else if (action == MuteAction::UNMUTE) {
-    volume->SetMute(false, nullptr);
-  } else {
-    assert(action == MuteAction::TOGGLE);
-    BOOL muted;
-    volume->GetMute(&muted);
-    volume->SetMute(!muted, nullptr);
+    return;
   }
+
+  assert(action == MuteAction::UNMUTE);
+  volume->SetMute(false, nullptr);
 }
 
 namespace {
@@ -470,7 +467,6 @@ std::wstring unmuteWavPath() {
 }// namespace
 
 void PlayFeedbackSound(MuteAction action) {
-  assert(action != MuteAction::TOGGLE);
   const auto feedbackWav
     = (action == MuteAction::MUTE) ? muteWavPath() : unmuteWavPath();
   const auto utf8 = WCharPtrToString(feedbackWav.c_str());

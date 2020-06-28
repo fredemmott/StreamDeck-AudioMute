@@ -18,6 +18,7 @@ LICENSE file.
 
 using json = nlohmann::json;
 
+class Action;
 class CallBackTimer;
 
 class MyStreamDeckPlugin : public ESDBasePlugin {
@@ -25,11 +26,6 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
   MyStreamDeckPlugin();
   virtual ~MyStreamDeckPlugin();
 
-  void KeyDownForAction(
-    const std::string& inAction,
-    const std::string& inContext,
-    const json& inPayload,
-    const std::string& inDeviceID) override;
   void KeyUpForAction(
     const std::string& inAction,
     const std::string& inContext,
@@ -41,15 +37,6 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
     const std::string& inContext,
     const json& inPayload,
     const std::string& inDeviceID) override;
-  void WillDisappearForAction(
-    const std::string& inAction,
-    const std::string& inContext,
-    const json& inPayload,
-    const std::string& inDeviceID) override;
-
-  void DeviceDidConnect(const std::string& inDeviceID, const json& inDeviceInfo)
-    override;
-  void DeviceDidDisconnect(const std::string& inDeviceID) override;
 
   void SendToPlugin(
     const std::string& inAction,
@@ -61,19 +48,10 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
     const std::string& inContext,
     const json& inPayload,
     const std::string& inDevice) override;
-  void DidReceiveGlobalSettings(const json&) override;
 
  private:
-  void UpdateContextCallback(const std::string& context);
+  std::mutex mActionsMutex;
+  std::map<std::string, std::shared_ptr<Action>> mActions;
 
-  std::mutex mVisibleContextsMutex;
-  std::set<std::string> mVisibleContexts;
-  std::map<std::string, std::string> mContextDeviceIDs;
-  std::map<std::string, bool> mContextFeedbackSounds;
-  std::map<std::string, void*> mContextCallbacks;
-
-  static std::string ConvertPluginAudioDeviceID(
-    const std::string& pluginDeviceID);
-
-  CallBackTimer* mTimer;
+  std::shared_ptr<Action> GetOrCreateAction(const std::string& action, const std::string& context, const nlohmann::json& settings);
 };
