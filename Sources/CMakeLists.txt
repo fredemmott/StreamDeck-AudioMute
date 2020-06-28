@@ -5,6 +5,8 @@ add_executable(
   DefaultAudioDevices.cpp
   MuteAction.cpp
   MyStreamDeckPlugin.cpp
+  PlayWavFile.cpp
+  StringEncoding.cpp
   ToggleMuteAction.cpp
   UnmuteAction.cpp
   main.cpp

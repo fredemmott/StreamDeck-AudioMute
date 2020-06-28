@@ -3,15 +3,14 @@
 #include "MuteAction.h"
 
 #include <StreamDeckSDK/ESDConnectionManager.h>
+#include <StreamDeckSDK/ESDUtilities.h>
 
 #include "AudioFunctions.h"
+#include "PlayWavFile.h"
 
-const std::string MuteAction::ACTION_ID(
-  "com.fredemmott.micmutetoggle.mute");
+const std::string MuteAction::ACTION_ID("com.fredemmott.micmutetoggle.mute");
 
-MuteAction::MuteAction(
-  ESDConnectionManager* esd,
-  const std::string& context)
+MuteAction::MuteAction(ESDConnectionManager* esd, const std::string& context)
   : Action(esd, context) {
 }
 
@@ -28,5 +27,10 @@ void MuteAction::KeyUp() {
     return;
   }
   MuteAudioDevice(GetRealDeviceID());
-  PlayFeedbackSound(FeedbackSoundEvent::MUTE);
+  PlayFeedbackSound();
+}
+
+void MuteAction::PlayFeedbackSound() {
+  PlayWavFile(ESDUtilities::AddPathComponent(
+    ESDUtilities::GetPluginDirectoryPath(), "mute.wav"));
 }

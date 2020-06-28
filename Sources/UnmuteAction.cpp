@@ -3,8 +3,10 @@
 #include "UnmuteAction.h"
 
 #include <StreamDeckSDK/ESDConnectionManager.h>
+#include <StreamDeckSDK/ESDUtilities.h>
 
 #include "AudioFunctions.h"
+#include "PlayWavFile.h"
 
 const std::string UnmuteAction::ACTION_ID(
   "com.fredemmott.micmutetoggle.unmute");
@@ -29,5 +31,11 @@ void UnmuteAction::KeyUp() {
     return;
   }
   UnmuteAudioDevice(device);
-  PlayFeedbackSound(FeedbackSoundEvent::UNMUTE);
+  PlayFeedbackSound();
+}
+
+
+void UnmuteAction::PlayFeedbackSound() {
+  PlayWavFile(ESDUtilities::AddPathComponent(
+    ESDUtilities::GetPluginDirectoryPath(), "unmute.wav"));
 }

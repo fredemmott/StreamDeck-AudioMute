@@ -5,6 +5,8 @@
 #include <StreamDeckSDK/ESDConnectionManager.h>
 
 #include "AudioFunctions.h"
+#include "MuteAction.h"
+#include "UnmuteAction.h"
 
 const std::string ToggleMuteAction::ACTION_ID(
   "com.fredemmott.micmutetoggle.toggle");
@@ -27,9 +29,9 @@ void ToggleMuteAction::KeyUp() {
   const auto device(GetRealDeviceID());
   if (IsAudioDeviceMuted(device)) {
     UnmuteAudioDevice(device);
-    PlayFeedbackSound(FeedbackSoundEvent::UNMUTE);
+    UnmuteAction::PlayFeedbackSound();
   } else {
     MuteAudioDevice(device);
-    PlayFeedbackSound(FeedbackSoundEvent::MUTE);
+    MuteAction::PlayFeedbackSound();
   }
 }

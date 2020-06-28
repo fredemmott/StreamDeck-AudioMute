@@ -9,6 +9,8 @@ class MuteAction final : public Action {
     const std::string& context);
   static const std::string ACTION_ID;
 
+  static void PlayFeedbackSound();
+
  protected:
   virtual void MuteStateDidChange(bool isMuted) override;
   virtual void WillAppear() override;

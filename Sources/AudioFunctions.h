@@ -14,11 +14,6 @@ enum class AudioDeviceDirection {
   INPUT,
 };
 
-enum class FeedbackSoundEvent{
-  UNMUTE,
-  MUTE,
-};
-
 enum class AudioDeviceState {
   CONNECTED,
   DEVICE_NOT_PRESENT,// USB device unplugged
@@ -62,6 +57,3 @@ AddDefaultAudioDeviceChangeCallback(
     void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>);
 void RemoveDefaultAudioDeviceChangeCallback(
   DEFAULT_AUDIO_DEVICE_CHANGE_CALLBACK_HANDLE);
-#ifdef HAVE_FEEDBACK_SOUNDS
-void PlayFeedbackSound(FeedbackSoundEvent action);
-#endif
