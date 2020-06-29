@@ -1,5 +1,3 @@
-#pragma once
-
 #include "UnmuteAction.h"
 
 #include <StreamDeckSDK/ESDConnectionManager.h>
