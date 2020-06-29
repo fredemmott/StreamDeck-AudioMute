@@ -42,7 +42,8 @@
     }
   ],
   "Author": "Fred Emmott",
-  "CodePath": "sdmicmute.exe",
+  "CodePathMac": "sdmicmute",
+  "CodePathWin": "sdmicmute.exe",
   "Description": "Toggle the mute for audio devices, such as microphones or speakers.",
   "PropertyInspectorPath": "propertyinspector/index.html",
   "Name": "Audio Mute",
@@ -52,6 +53,10 @@
     {
       "Platform": "windows",
       "MinimumVersion": "10"
+    },
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.14"
     }
   ],
   "SDKVersion": 2,
