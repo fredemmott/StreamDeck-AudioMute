@@ -43,25 +43,34 @@ void Action::DidReceiveSettings(const nlohmann::json& json) {
   if (deviceDidChange) {
     mRealDeviceID = DefaultAudioDevices::GetRealDeviceID(mSettings.deviceID);
     if (mRealDeviceID != mSettings.deviceID) {
-      ESDDebug("Registering default device change callback for {}", GetContext());
-      mDefaultChangeCallbackHandle = std::move(
-        AddDefaultAudioDeviceChangeCallback(
-          [this](AudioDeviceDirection direction, AudioDeviceRole role, const std::string& device) {
+      ESDDebug(
+        "Registering default device change callback for {}", GetContext());
+      mDefaultChangeCallbackHandle
+        = std::move(AddDefaultAudioDeviceChangeCallback(
+          [this](
+            AudioDeviceDirection direction, AudioDeviceRole role,
+            const std::string& device) {
             ESDDebug("In default device change callback for {}", GetContext());
-            if (DefaultAudioDevices::GetSpecialDeviceID(direction, role) != mSettings.deviceID) {
+            if (
+              DefaultAudioDevices::GetSpecialDeviceID(direction, role)
+              != mSettings.deviceID) {
               ESDDebug("Not this device");
               return;
             }
+            ESDLog(
+              "Special device change: old device: '{}' - new device: '{}'",
+              mRealDeviceID, device);
             if (device == mRealDeviceID) {
-              ESDLog("Default default change for context {} didn't actually change", GetContext());
+              ESDLog(
+                "Default default change for context {} didn't actually change");
               return;
             }
             mRealDeviceID = device;
-            ESDDebug("Invoking RealDeviceDidChange from callback for context {}", GetContext());
+            ESDLog(
+              "Invoking RealDeviceDidChange from callback for context {}",
+              GetContext());
             RealDeviceDidChange();
-          }
-        )
-      );
+          }));
     }
     RealDeviceDidChange();
   }

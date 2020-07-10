@@ -16,6 +16,13 @@ T GetAudioObjectProperty(
 }
 
 template <>
+bool GetAudioObjectProperty<bool>(
+  UInt32 id,
+  const AudioObjectPropertyAddress& prop) {
+  return GetAudioObjectProperty<UInt32>(id, prop);
+}
+
+template <>
 std::string GetAudioObjectProperty<std::string>(
   UInt32 id,
   const AudioObjectPropertyAddress& prop) {
@@ -174,19 +181,20 @@ AudioDeviceState GetAudioDeviceState(const std::string& _id) {
   return AudioDeviceState::CONNECTED;
 }
 
-struct MuteCallbackHandleImpl {
-  typedef std::function<void(bool isMuted)> UserCallback;
-  MuteCallbackHandleImpl(
-    UserCallback cb,
+namespace {
+
+template <class TProp>
+struct BaseCallbackHandleImpl {
+  typedef std::function<void(TProp value)> UserCallback;
+  BaseCallbackHandleImpl(
+    UserCallback callback,
     AudioDeviceID device,
-    AudioDeviceDirection direction)
-    : mProp{kAudioDevicePropertyMute, direction == AudioDeviceDirection::INPUT ? kAudioObjectPropertyScopeInput : kAudioObjectPropertyScopeOutput, kAudioObjectPropertyElementMaster},
-      mCallback(cb),
-      mDevice(device) {
+    AudioObjectPropertyAddress prop)
+    : mProp(prop), mDevice(device), mCallback(callback) {
     AudioObjectAddPropertyListener(mDevice, &mProp, &OSCallback, this);
   }
 
-  ~MuteCallbackHandleImpl() {
+  virtual ~BaseCallbackHandleImpl() {
     AudioObjectRemovePropertyListener(mDevice, &mProp, &OSCallback, this);
   }
 
@@ -200,10 +208,28 @@ struct MuteCallbackHandleImpl {
     UInt32 _prop_count,
     const AudioObjectPropertyAddress* _props,
     void* data) {
-    auto self = reinterpret_cast<MuteCallbackHandleImpl*>(data);
-    const bool muted = GetAudioObjectProperty<UInt32>(id, self->mProp);
-    self->mCallback(muted);
+    auto self = reinterpret_cast<BaseCallbackHandleImpl<TProp>*>(data);
+    const auto value = GetAudioObjectProperty<TProp>(id, self->mProp);
+    self->mCallback(value);
     return 0;
+  }
+};
+
+}// namespace
+
+struct MuteCallbackHandleImpl : BaseCallbackHandleImpl<bool> {
+  MuteCallbackHandleImpl(
+    UserCallback cb,
+    AudioDeviceID device,
+    AudioDeviceDirection direction)
+    : BaseCallbackHandleImpl(
+      cb,
+      device,
+      {kAudioDevicePropertyMute,
+       direction == AudioDeviceDirection::INPUT
+         ? kAudioObjectPropertyScopeInput
+         : kAudioObjectPropertyScopeOutput,
+       kAudioObjectPropertyElementMaster}) {
   }
 };
 
@@ -222,9 +248,32 @@ std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
 }
 
 struct DefaultChangeCallbackHandleImpl {
-  typedef std::function<
-    void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>
-    UserCallback;
+  DefaultChangeCallbackHandleImpl(
+    std::function<
+      void(AudioDeviceDirection, AudioDeviceRole, const std::string&)> cb)
+    : mInputImpl(
+      [=](AudioDeviceID native_id) {
+        const auto device
+          = MakeDeviceID(native_id, AudioDeviceDirection::INPUT);
+        cb(AudioDeviceDirection::INPUT, AudioDeviceRole::DEFAULT, device);
+      },
+      kAudioObjectSystemObject,
+      {kAudioHardwarePropertyDefaultInputDevice,
+       kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster}),
+      mOutputImpl(
+        [=](AudioDeviceID native_id) {
+        const auto device
+          = MakeDeviceID(native_id, AudioDeviceDirection::OUTPUT);
+          cb(AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT, device);
+        },
+        kAudioObjectSystemObject,
+        {kAudioHardwarePropertyDefaultOutputDevice,
+         kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster}) {
+  }
+
+ private:
+  BaseCallbackHandleImpl<AudioDeviceID> mInputImpl;
+  BaseCallbackHandleImpl<AudioDeviceID> mOutputImpl;
 };
 
 DefaultChangeCallbackHandle::DefaultChangeCallbackHandle(
@@ -236,7 +285,7 @@ DefaultChangeCallbackHandle::~DefaultChangeCallbackHandle() {
 
 std::unique_ptr<DefaultChangeCallbackHandle>
 AddDefaultAudioDeviceChangeCallback(
-  DefaultChangeCallbackHandleImpl::UserCallback _cb) {
+  std::function<void(AudioDeviceDirection, AudioDeviceRole, const std::string&)> cb) {
   return std::make_unique<DefaultChangeCallbackHandle>(
-    new DefaultChangeCallbackHandleImpl());
+    new DefaultChangeCallbackHandleImpl(cb));
 }
