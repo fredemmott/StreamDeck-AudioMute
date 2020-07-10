@@ -5,6 +5,21 @@
 
 namespace {
 
+std::string Utf8StringFromCFString(
+  CFStringRef ref,
+  size_t buf_size = 1024
+) {
+  // Re-use the existing buffer if possible...
+  auto ptr = CFStringGetCStringPtr(ref, kCFStringEncodingUTF8);
+  if (ptr) {
+    return ptr;
+  }
+  // ... but sometimes it isn't. Copy.
+  char buf[buf_size];
+  CFStringGetCString(ref, buf, buf_size, kCFStringEncodingUTF8);
+  return buf;
+}
+
 template <class T>
 T GetAudioObjectProperty(
   AudioObjectID id,
@@ -33,7 +48,7 @@ std::string GetAudioObjectProperty<std::string>(
   if (!value) {
     return std::string();
   }
-  auto ret = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
+  auto ret = Utf8StringFromCFString(value);
   CFRelease(value);
   return ret;
 }
@@ -53,11 +68,11 @@ std::tuple<UInt32, AudioDeviceDirection> ParseDeviceID(const std::string& id) {
   CFStringRef uid = CFStringCreateWithCString(
     kCFAllocatorDefault, id.substr(idx + 1).c_str(), kCFStringEncodingUTF8);
   UInt32 device_id;
-  AudioValueTranslation value{
-    &uid, sizeof(CFStringRef), &device_id, sizeof(device_id)};
-  AudioObjectPropertyAddress prop{
-    kAudioHardwarePropertyDeviceForUID, kAudioObjectPropertyScopeGlobal,
-    kAudioObjectPropertyElementMaster};
+  AudioValueTranslation value{&uid, sizeof(CFStringRef), &device_id,
+                              sizeof(device_id)};
+  AudioObjectPropertyAddress prop{kAudioHardwarePropertyDeviceForUID,
+                                  kAudioObjectPropertyScopeGlobal,
+                                  kAudioObjectPropertyElementMaster};
   UInt32 size = sizeof(value);
 
   AudioObjectGetPropertyData(
@@ -70,11 +85,11 @@ std::tuple<UInt32, AudioDeviceDirection> ParseDeviceID(const std::string& id) {
 void SetAudioDeviceIsMuted(const std::string& id, bool muted) {
   const UInt32 value = muted;
   const auto [native_id, direction] = ParseDeviceID(id);
-  AudioObjectPropertyAddress prop{
-    kAudioDevicePropertyMute,
-    direction == AudioDeviceDirection::INPUT ? kAudioDevicePropertyScopeInput
-                                             : kAudioDevicePropertyScopeOutput,
-    0};
+  AudioObjectPropertyAddress prop{kAudioDevicePropertyMute,
+                                  direction == AudioDeviceDirection::INPUT
+                                    ? kAudioDevicePropertyScopeInput
+                                    : kAudioDevicePropertyScopeOutput,
+                                  0};
   AudioObjectSetPropertyData(native_id, &prop, 0, NULL, sizeof(value), &value);
 }
 
@@ -85,11 +100,11 @@ std::string GetDefaultAudioDeviceID(
   AudioDeviceRole _role) {
   AudioDeviceID native_id = 0;
   UInt32 native_id_size = sizeof(native_id);
-  AudioObjectPropertyAddress prop = {
-    direction == AudioDeviceDirection::INPUT
-      ? kAudioHardwarePropertyDefaultInputDevice
-      : kAudioHardwarePropertyDefaultOutputDevice,
-    kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster};
+  AudioObjectPropertyAddress prop
+    = {direction == AudioDeviceDirection::INPUT
+         ? kAudioHardwarePropertyDefaultInputDevice
+         : kAudioHardwarePropertyDefaultOutputDevice,
+       kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster};
 
   AudioObjectGetPropertyData(
     kAudioObjectSystemObject, &prop, 0, NULL, &native_id_size, &native_id);
@@ -114,12 +129,36 @@ void UnmuteAudioDevice(const std::string& id) {
   SetAudioDeviceIsMuted(id, false);
 }
 
+namespace {
+std::string GetDataSourceName(
+  AudioDeviceID device_id,
+  AudioObjectPropertyScope scope) {
+  auto data_source = GetAudioObjectProperty<AudioObjectID>(
+    device_id,
+    {kAudioDevicePropertyDataSource, scope, kAudioObjectPropertyElementMaster});
+
+    CFStringRef value = nullptr;
+    AudioValueTranslation translate{&data_source, sizeof(data_source), &value,
+                                    sizeof(value)};
+    UInt32 size = sizeof(translate);
+    const AudioObjectPropertyAddress prop {kAudioDevicePropertyDataSourceNameForIDCFString, scope,
+            kAudioObjectPropertyElementMaster};
+    AudioObjectGetPropertyData(device_id, &prop, 0, nullptr, &size, &translate);
+    if (!value) {
+      return std::string();
+    }
+    auto ret = Utf8StringFromCFString(value);
+    CFRelease(value);
+    return ret;
+}
+}// namespace
+
 std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
   AudioDeviceDirection direction) {
   UInt32 size = 0;
-  AudioObjectPropertyAddress prop = {
-    kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
-    kAudioObjectPropertyElementMaster};
+  AudioObjectPropertyAddress prop
+    = {kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
+       kAudioObjectPropertyElementMaster};
 
   AudioObjectGetPropertyDataSize(
     kAudioObjectSystemObject, &prop, 0, nullptr, &size);
@@ -137,40 +176,31 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
                        ? kAudioObjectPropertyScopeInput
                        : kAudioObjectPropertyScopeOutput;
   for (const auto id : ids) {
+    const auto interface_name = GetAudioObjectProperty<std::string>(
+      id, {kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal,
+           kAudioObjectPropertyElementMaster});
     // ... and we do that filtering by finding out how many channels there
     // are. No channels for a given direction? Not a valid device for that
     // direction.
-    UInt32 num_streams;
+    UInt32 size;
     prop
       = {kAudioDevicePropertyStreams, scope, kAudioObjectPropertyScopeGlobal};
-    AudioObjectGetPropertyDataSize(id, &prop, 0, nullptr, &num_streams);
-    if (num_streams == 0) {
+    AudioObjectGetPropertyDataSize(id, &prop, 0, nullptr, &size);
+    if (size == 0) {
       continue;
     }
-    AudioDeviceInfo info{
-      .id = MakeDeviceID(id, direction),
-      .interfaceName = GetAudioObjectProperty<std::string>(
-        id, {kAudioObjectPropertyName, kAudioObjectPropertyScopeGlobal,
-             kAudioObjectPropertyElementMaster}),
-      .direction = direction,
-      .state = AudioDeviceState::CONNECTED};
 
-    prop = {
-      kAudioDevicePropertyDataSource, scope, kAudioObjectPropertyElementMaster};
-    UInt32 data_source;
-    size = sizeof(data_source);
-    AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &data_source);
-    CFStringRef value = nullptr;
-    AudioValueTranslation translate{
-      &data_source, sizeof(data_source), &value, sizeof(value)};
-    size = sizeof(translate);
-    prop = {
-      kAudioDevicePropertyDataSourceNameForIDCFString, scope,
-      kAudioObjectPropertyElementMaster};
-    AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &translate);
-    info.displayName = CFStringGetCStringPtr(value, kCFStringEncodingUTF8);
-    info.endpointName = info.displayName;
-    CFRelease(value);
+    AudioDeviceInfo info{.id = MakeDeviceID(id, direction),
+                         .interfaceName = interface_name,
+                         .direction = direction,
+                         .state = AudioDeviceState::CONNECTED};
+
+    const auto data_source_name = GetDataSourceName(id, scope);
+    if (data_source_name.empty()) {
+      info.displayName = info.interfaceName;
+    } else {
+      info.displayName = data_source_name;
+    }
 
     out.emplace(info.id, info);
   }
@@ -285,7 +315,8 @@ DefaultChangeCallbackHandle::~DefaultChangeCallbackHandle() {
 
 std::unique_ptr<DefaultChangeCallbackHandle>
 AddDefaultAudioDeviceChangeCallback(
-  std::function<void(AudioDeviceDirection, AudioDeviceRole, const std::string&)> cb) {
+  std::function<void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>
+    cb) {
   return std::make_unique<DefaultChangeCallbackHandle>(
     new DefaultChangeCallbackHandleImpl(cb));
 }
