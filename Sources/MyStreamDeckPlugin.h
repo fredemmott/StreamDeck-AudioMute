@@ -18,8 +18,8 @@ LICENSE file.
 
 using json = nlohmann::json;
 
-class Action;
 class CallBackTimer;
+class ESDAction;
 
 class MyStreamDeckPlugin : public ESDBasePlugin {
  public:
@@ -51,7 +51,9 @@ class MyStreamDeckPlugin : public ESDBasePlugin {
 
  private:
   std::mutex mActionsMutex;
-  std::map<std::string, std::shared_ptr<Action>> mActions;
+  std::map<std::string, std::shared_ptr<ESDAction>> mActions;
 
-  std::shared_ptr<Action> GetOrCreateAction(const std::string& action, const std::string& context);
+  std::shared_ptr<ESDAction> GetOrCreateAction(
+    const std::string& action,
+    const std::string& context);
 };

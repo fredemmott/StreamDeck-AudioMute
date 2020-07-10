@@ -20,9 +20,9 @@ LICENSE file.
 #include <atomic>
 #include <mutex>
 
-#include "Action.h"
 #include "AudioFunctions.h"
 #include "DefaultAudioDevices.h"
+#include "ESDAction.h"
 #include "MuteAction.h"
 #include "ToggleMuteAction.h"
 #include "UnmuteAction.h"
@@ -137,7 +137,7 @@ void MyStreamDeckPlugin::DidReceiveSettings(
   action->DidReceiveSettings(inPayload["settings"]);
 }
 
-std::shared_ptr<Action> MyStreamDeckPlugin::GetOrCreateAction(
+std::shared_ptr<ESDAction> MyStreamDeckPlugin::GetOrCreateAction(
   const std::string& action,
   const std::string& context) {
   std::scoped_lock lock(mActionsMutex);
