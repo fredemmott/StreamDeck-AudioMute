@@ -55,7 +55,6 @@
       communicationsInput: "com.fredemmott.sdmute.deviceIds.communicationsInput",
       communicationsOutput: "com.fredemmott.sdmute.deviceIds.communicationsOutput",
     };
-    const DEFAULT_DEVICE_ID = SPECIAL_IDS.communicationsInput;
     var uuid,
       actionInfo,
       ctx,
@@ -69,9 +68,6 @@
       actionInfo = jsonObj.actionInfo.action;
       settings = jsonObj.actionInfo.payload.settings;
       ctx = jsonObj.actionInfo.context;
-      if (!'deviceID' in settings) {
-        settings.deviceID = DEFAULT_DEVICE_ID;
-      }
       if (!'feedbackSounds' in settings) {
         settings.feedbackSounds = true;
       }
@@ -126,16 +122,26 @@
         return 0;
       });
 
-      const defaultInput = outputDevices[defaultDevices[SPECIAL_IDS.defaultInput]];
+      const defaultInput = inputDevices[defaultDevices[SPECIAL_IDS.defaultInput]];
       const defaultOutput = outputDevices[defaultDevices[SPECIAL_IDS.defaultOutput]];
-      const communicationsInput = outputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]];
+      const communicationsInput = inputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]];
       const communicationsOutput = outputDevices[defaultDevices[SPECIAL_IDS.communicationsOutput]];
 
       const dynamicGroup = document.getElementById('dynamicDevices');
-      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultInput, "Default Input", inputDevices[defaultDevices[SPECIAL_IDS.defaultInput]].displayName));
-      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultOutput, "Default Output", outputDevices[defaultDevices[SPECIAL_IDS.defaultOutput]].displayName));
-      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsInput, "Communications Input", inputDevices[defaultDevices[SPECIAL_IDS.communicationsInput]].displayName));
-      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsOutput, "Communications Output", outputDevices[defaultDevices[SPECIAL_IDS.communicationsOutput]].displayName));
+      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultInput, "Default Input", defaultInput.displayName));
+      dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultOutput, "Default Output", defaultOutput.displayName));
+      if (communicationsInput) {
+        console.log({communicationsInput, communicationsOutput});
+        dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsInput, "Communications Input", communicationsInput.displayName));
+        dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsOutput, "Communications Output", communicationsOutput.displayName));
+      }
+      if (!settings.deviceID) {
+        if (communicationsInput) {
+          settings.deviceID = communicationsInput;
+        } else {
+          settings.deviceID = defaultInput;
+        }
+      }
 
       const show_device = device => {
         return device.state == "connected" || device.state == "device_present_no_connection" || device.id == settings.deviceID;

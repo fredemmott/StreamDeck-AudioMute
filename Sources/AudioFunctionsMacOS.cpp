@@ -5,10 +5,7 @@
 
 namespace {
 
-std::string Utf8StringFromCFString(
-  CFStringRef ref,
-  size_t buf_size = 1024
-) {
+std::string Utf8StringFromCFString(CFStringRef ref, size_t buf_size = 1024) {
   // Re-use the existing buffer if possible...
   auto ptr = CFStringGetCStringPtr(ref, kCFStringEncodingUTF8);
   if (ptr) {
@@ -97,7 +94,10 @@ void SetAudioDeviceIsMuted(const std::string& id, bool muted) {
 
 std::string GetDefaultAudioDeviceID(
   AudioDeviceDirection direction,
-  AudioDeviceRole _role) {
+  AudioDeviceRole role) {
+  if (role != AudioDeviceRole::DEFAULT) {
+    return std::string();
+  }
   AudioDeviceID native_id = 0;
   UInt32 native_id_size = sizeof(native_id);
   AudioObjectPropertyAddress prop
@@ -137,19 +137,20 @@ std::string GetDataSourceName(
     device_id,
     {kAudioDevicePropertyDataSource, scope, kAudioObjectPropertyElementMaster});
 
-    CFStringRef value = nullptr;
-    AudioValueTranslation translate{&data_source, sizeof(data_source), &value,
-                                    sizeof(value)};
-    UInt32 size = sizeof(translate);
-    const AudioObjectPropertyAddress prop {kAudioDevicePropertyDataSourceNameForIDCFString, scope,
-            kAudioObjectPropertyElementMaster};
-    AudioObjectGetPropertyData(device_id, &prop, 0, nullptr, &size, &translate);
-    if (!value) {
-      return std::string();
-    }
-    auto ret = Utf8StringFromCFString(value);
-    CFRelease(value);
-    return ret;
+  CFStringRef value = nullptr;
+  AudioValueTranslation translate{&data_source, sizeof(data_source), &value,
+                                  sizeof(value)};
+  UInt32 size = sizeof(translate);
+  const AudioObjectPropertyAddress prop{
+    kAudioDevicePropertyDataSourceNameForIDCFString, scope,
+    kAudioObjectPropertyElementMaster};
+  AudioObjectGetPropertyData(device_id, &prop, 0, nullptr, &size, &translate);
+  if (!value) {
+    return std::string();
+  }
+  auto ret = Utf8StringFromCFString(value);
+  CFRelease(value);
+  return ret;
 }
 }// namespace
 
@@ -292,8 +293,8 @@ struct DefaultChangeCallbackHandleImpl {
        kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster}),
       mOutputImpl(
         [=](AudioDeviceID native_id) {
-        const auto device
-          = MakeDeviceID(native_id, AudioDeviceDirection::OUTPUT);
+          const auto device
+            = MakeDeviceID(native_id, AudioDeviceDirection::OUTPUT);
           cb(AudioDeviceDirection::OUTPUT, AudioDeviceRole::DEFAULT, device);
         },
         kAudioObjectSystemObject,
