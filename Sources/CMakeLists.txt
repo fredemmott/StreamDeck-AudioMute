@@ -32,11 +32,12 @@ add_executable(
 
 target_link_libraries(sdmicmute StreamDeckSDK)
 if(APPLE)
+  find_library(AUDIOTOOLBOX_FRAMEWORK AudioToolbox)
   find_library(COREAUDIO_FRAMEWORK CoreAudio)
   find_library(COREFOUNDATION_FRAMEWORK CoreFoundation)
   add_executable(audiodevices_test AudioFunctionsMacOS.cpp audiodevices_test.cpp)
   target_link_libraries(audiodevices_test StreamDeckSDK ${COREAUDIO_FRAMEWORK} ${COREFOUNDATION_FRAMEWORK})
-  target_link_libraries(sdmicmute ${COREAUDIO_FRAMEWORK} ${COREFOUNDATION_FRAMEWORK})
+  target_link_libraries(sdmicmute ${AUDIOTOOLBOX_FRAMEWORK} ${COREAUDIO_FRAMEWORK} ${COREFOUNDATION_FRAMEWORK})
 elseif(WIN32)
   target_link_libraries(sdmicmute Winmm)
 endif()
