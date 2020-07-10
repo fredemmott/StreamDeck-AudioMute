@@ -193,8 +193,8 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
 
     AudioDeviceInfo info{.id = MakeDeviceID(id, direction),
                          .interfaceName = interface_name,
-                         .direction = direction,
-                         .state = AudioDeviceState::CONNECTED};
+                         .direction = direction};
+    info.state = GetAudioDeviceState(info.id);
 
     const auto data_source_name = GetDataSourceName(id, scope);
     if (data_source_name.empty()) {
@@ -208,8 +208,39 @@ std::map<std::string, AudioDeviceInfo> GetAudioDeviceList(
   return out;
 }
 
-AudioDeviceState GetAudioDeviceState(const std::string& _id) {
-  return AudioDeviceState::CONNECTED;
+AudioDeviceState GetAudioDeviceState(const std::string& id) {
+  const auto [native_id, direction] = ParseDeviceID(id);
+  if (!native_id) {
+    return AudioDeviceState::DEVICE_NOT_PRESENT;
+  }
+  const auto scope = direction == AudioDeviceDirection::INPUT
+                       ? kAudioDevicePropertyScopeInput
+                       : kAudioObjectPropertyScopeOutput;
+
+  const auto transport = GetAudioObjectProperty<UInt32>(
+    native_id, {kAudioDevicePropertyTransportType, scope,
+                kAudioObjectPropertyElementMaster});
+
+  // no jack: 'Internal Speakers'
+  // jack: 'Headphones'
+  //
+  // Showing plugged/unplugged for these is just noise
+  if (transport == kAudioDeviceTransportTypeBuiltIn) {
+    return AudioDeviceState::CONNECTED;
+  }
+
+  const AudioObjectPropertyAddress prop = {
+    kAudioDevicePropertyJackIsConnected,
+    scope,
+    kAudioObjectPropertyElementMaster};
+  const auto supports_jack = AudioObjectHasProperty(native_id, &prop);
+  if (!supports_jack) {
+    return AudioDeviceState::CONNECTED;
+  }
+
+  const auto is_plugged = GetAudioObjectProperty<bool>(native_id, prop);
+  return is_plugged ? AudioDeviceState::CONNECTED
+                    : AudioDeviceState::DEVICE_PRESENT_NO_CONNECTION;
 }
 
 namespace {
