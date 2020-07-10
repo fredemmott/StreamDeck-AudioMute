@@ -19,7 +19,7 @@ jobs:
         working-directory: build
         shell: pwsh
         run: |
-          cmake ${{github.workspace}}\source `
+          cmake ${{github.workspace}}/source `
             "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
             "-DCMAKE_INSTALL_PREFIX=${{github.workspace}}/com.fredemmott.micmutetoggle.sdPlugin"
@@ -33,20 +33,72 @@ jobs:
         if: matrix.os == 'macos'
         uses: actions/upload-artifact@v2
         with:
-          name: sdmicmute-Mac-${{matrix.build-type}}
+          name: Mac-${{matrix.build-type}}
           path: build/Sources/sdmicmute
       - name: Upload Windows Executable
         if: matrix.os == 'windows'
         uses: actions/upload-artifact@v2
         with:
-          name: sdmicmute-Windows-${{matrix.build-type}}
+          name: Windows-${{matrix.build-type}}
           path: build/Sources/${{matrix.build-type}}/sdmicmute.exe
     strategy:
       matrix:
         os: [windows, macos]
         build-type: [Release, Debug]
-  release:
+  streamDeckPlugin:
+    name: streamDeckPlugin/${{matrix.build-type}}
     needs: [build]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: source
+      - name: Make build directory
+        run: cmake -E make_directory build
+      - name: Configure
+        working-directory: build
+        shell: pwsh
+        run: |
+          cmake ${{github.workspace}}/source `
+            "-DCMAKE_INSTALL_PREFIX=${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin"
+      - name: Install static files
+        working-directory: build/sdPlugin
+        run: make install
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ${{runner.temp}}/artifacts
+      - name: Display downloaded files
+        run: ls -R
+        working-directory: ${{runner.temp}}/artifacts
+      - name: Copy executables
+        working-directory: ${{runner.temp}}
+        run: |
+          install -m755 \
+            artifacts/Mac-${{matrix.build-type}}/sdmicmute \
+            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
+          install -m755 \
+            artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
+            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
+      - name: Checkout DistributionTool
+        uses: actions/checkout@v2
+        with:
+          ref: distributiontool-v1.4
+      - name: Build .streamDeckPlugin
+        run: |
+          ./DistributionTool -b \
+            -i ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin \
+            -o .
+      - name: Upload .streamDeckPlugin
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{matrix.build-type}}-StreamDeckPlugin
+          path: com.fredemmott.micmutetoggle.streamDeckPlugin
+    strategy:
+      matrix:
+        build-type: [Release, Debug]
+  release:
+    needs: [streamDeckPlugin]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v2
@@ -81,7 +133,7 @@ jobs:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: ${{runner.temp}}/artifacts/Release/com.fredemmott.micmutetoggle.streamDeckPlugin
+        asset_path: ${{runner.temp}}/artifacts/Release-StreamDeckPlugin/com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_name: com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_content_type: application/octet-stream
     - name: Attach Debug Build
@@ -91,6 +143,6 @@ jobs:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: ${{runner.temp}}/artifacts/Debug/com.fredemmott.micmutetoggle.streamDeckPlugin
+        asset_path: ${{runner.temp}}/artifacts/Debug-StreamDeckPlugin/com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_name: debug-com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_content_type: application/octet-stream
