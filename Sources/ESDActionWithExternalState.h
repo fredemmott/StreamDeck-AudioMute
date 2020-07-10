@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Action.h"
+#include "ESDAction.h"
 
-/** An Action where state can be changed by something other than the StreamDeck
- * software.
+/** An ESDAction where state can be changed by something other than the
+ * StreamDeck software.
  *
  * For example:
  * - hardware events
@@ -15,15 +15,15 @@
  * new event for when they've changed.
  */
 template <class TSettings>
-class ActionWithExternalState : public Action {
+class ESDActionWithExternalState : public ESDAction {
  public:
-  ActionWithExternalState(
+  ESDActionWithExternalState(
     ESDConnectionManager* esd_connection,
     const std::string& context)
-    : Action(esd_connection, context) {
+    : ESDAction(esd_connection, context) {
   }
 
-  virtual ~ActionWithExternalState() {
+  virtual ~ESDActionWithExternalState() {
   }
 
   virtual void DidReceiveSettings(const nlohmann::json& json_settings) final {

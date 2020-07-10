@@ -1,8 +1,8 @@
 set(
   SOURCES
-  Action.cpp
   BaseMuteAction.cpp
   DefaultAudioDevices.cpp
+  ESDAction.cpp
   MuteAction.cpp
   MyStreamDeckPlugin.cpp
   ToggleMuteAction.cpp

@@ -5,10 +5,10 @@
 
 class ESDConnectionManager;
 
-class Action {
+class ESDAction {
  public:
-  Action(ESDConnectionManager* esd_connection, const std::string& context);
-  virtual ~Action();
+  ESDAction(ESDConnectionManager* esd_connection, const std::string& context);
+  virtual ~ESDAction();
 
   virtual void DidReceiveSettings(const nlohmann::json& settings);
   virtual void WillAppear(const nlohmann::json& settings);

@@ -18,7 +18,7 @@ void from_json(const json& json, MuteActionSettings& settings) {
 BaseMuteAction::BaseMuteAction(
   ESDConnectionManager* esd_connection,
   const std::string& context)
-  : ActionWithExternalState(esd_connection, context) {
+  : ESDActionWithExternalState(esd_connection, context) {
 }
 
 BaseMuteAction::~BaseMuteAction() {

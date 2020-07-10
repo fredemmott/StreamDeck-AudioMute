@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ActionWithExternalState.h"
+#include "ESDActionWithExternalState.h"
 
 class DefaultChangeCallbackHandle;
 class MuteCallbackHandle;
@@ -16,7 +16,7 @@ struct MuteActionSettings {
 
 void from_json(const nlohmann::json& json, MuteActionSettings& settings);
 
-class BaseMuteAction : public ActionWithExternalState<MuteActionSettings> {
+class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
  public:
   BaseMuteAction(
     ESDConnectionManager* esd_connection,
