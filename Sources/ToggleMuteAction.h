@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Action.h"
+#include "BaseMuteAction.h"
 
-class ToggleMuteAction final : public Action {
+class ToggleMuteAction final : public BaseMuteAction {
  public:
   ToggleMuteAction(
     ESDConnectionManager* esd,

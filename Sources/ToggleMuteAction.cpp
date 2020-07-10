@@ -15,7 +15,7 @@ const std::string ToggleMuteAction::ACTION_ID(
 ToggleMuteAction::ToggleMuteAction(
   ESDConnectionManager* esd,
   const std::string& context)
-  : Action(esd, context) {
+  : BaseMuteAction(esd, context) {
 }
 
 void ToggleMuteAction::MuteStateDidChange(bool isMuted) {

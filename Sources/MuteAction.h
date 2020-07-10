@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Action.h"
+#include "BaseMuteAction.h"
 
-class MuteAction final : public Action {
+class MuteAction final : public BaseMuteAction {
  public:
-  MuteAction(
-    ESDConnectionManager* esd,
-    const std::string& context);
+  MuteAction(ESDConnectionManager* esd, const std::string& context);
   static const std::string ACTION_ID;
 
   static void PlayFeedbackSound();

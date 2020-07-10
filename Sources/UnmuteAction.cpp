@@ -12,7 +12,7 @@ const std::string UnmuteAction::ACTION_ID(
 UnmuteAction::UnmuteAction(
   ESDConnectionManager* esd,
   const std::string& context)
-  : Action(esd, context) {
+  : BaseMuteAction(esd, context) {
 }
 
 void UnmuteAction::MuteStateDidChange(bool isMuted) {

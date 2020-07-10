@@ -9,7 +9,7 @@
 const std::string MuteAction::ACTION_ID("com.fredemmott.micmutetoggle.mute");
 
 MuteAction::MuteAction(ESDConnectionManager* esd, const std::string& context)
-  : Action(esd, context) {
+  : BaseMuteAction(esd, context) {
 }
 
 void MuteAction::MuteStateDidChange(bool isMuted) {
