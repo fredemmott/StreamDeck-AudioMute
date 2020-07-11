@@ -1,5 +1,10 @@
-// Include order matters for these; don't let the autoformatter break things
+/* Copyright (c) 2019-present, Fred Emmott
+ *
+ * This source code is licensed under the MIT-style license found in the
+ * LICENSE file.
+ */
 
+// Include order matters for these; don't let the autoformatter break things
 // clang-format off
 #include "windows.h"
 #include "endpointvolume.h"

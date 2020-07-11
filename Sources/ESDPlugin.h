@@ -1,16 +1,9 @@
-//==============================================================================
-/**
-@file       ESDPlugin.h
-
-@brief      CPU plugin
-
-@copyright  (c) 2018, Corsair Memory, Inc.
-@copyright  (c) 2020, Fred Emmott
-      This source code is licensed under the MIT-style license found in the
-LICENSE file.
-
-**/
-//==============================================================================
+/* Copyright (c) 2018, Corsair Memory, Inc.
+ * Copyright (c) 2020-present, Fred Emmott
+ *
+ * This source code is licensed under the MIT-style license found in the
+ * LICENSE file.
+ */
 
 #include <StreamDeckSDK/ESDBasePlugin.h>
 
