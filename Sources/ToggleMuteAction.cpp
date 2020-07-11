@@ -4,8 +4,6 @@
  * LICENSE file.
  */
 
-#pragma once
-
 #include "ToggleMuteAction.h"
 
 #include <StreamDeckSDK/ESDConnectionManager.h>
