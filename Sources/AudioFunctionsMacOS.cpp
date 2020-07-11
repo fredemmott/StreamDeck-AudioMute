@@ -9,7 +9,7 @@
 
 #include "AudioFunctions.h"
 
-namespace FredEmmott::AudioDevices {
+namespace FredEmmott::Audio {
 
 namespace {
 
@@ -360,4 +360,4 @@ AddDefaultAudioDeviceChangeCallback(
     new DefaultChangeCallbackHandleImpl(cb));
 }
 
-}// namespace FredEmmott::AudioDevices
+}// namespace FredEmmott::Audio

@@ -19,12 +19,12 @@ struct MuteActionSettings {
 
 void from_json(const nlohmann::json& json, MuteActionSettings& settings);
 
-namespace FredEmmott::AudioDevices {
+namespace FredEmmott::Audio {
 class DefaultChangeCallbackHandle;
 class MuteCallbackHandle;
-}// namespace FredEmmott::AudioDevices
+}// namespace FredEmmott::Audio
 
-using namespace FredEmmott::AudioDevices;
+using namespace FredEmmott::Audio;
 
 class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
  public:

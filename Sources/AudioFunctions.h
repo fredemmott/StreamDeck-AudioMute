@@ -10,7 +10,7 @@
 #include <map>
 #include <string>
 
-namespace FredEmmott::AudioDevices {
+namespace FredEmmott::Audio {
 
 enum class AudioDeviceRole {
   DEFAULT,
@@ -93,4 +93,4 @@ std::unique_ptr<DefaultChangeCallbackHandle>
     std::function<
       void(AudioDeviceDirection, AudioDeviceRole, const std::string&)>);
 
-}// namespace FredEmmott::AudioDevices
+}// namespace FredEmmott::Audio

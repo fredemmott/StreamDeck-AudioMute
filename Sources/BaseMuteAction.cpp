@@ -22,7 +22,7 @@ void from_json(const json& json, MuteActionSettings& settings) {
     = EPLJSONUtils::GetBoolByName(json, "feedbackSounds", true);
 }
 
-namespace FredEmmott::AudioDevices {
+namespace FredEmmott::Audio {
 
 void to_json(json& j, const AudioDeviceInfo& device) {
   j = json({{"id", device.id},
@@ -31,7 +31,7 @@ void to_json(json& j, const AudioDeviceInfo& device) {
             {"displayName", device.displayName},
             {"state", device.state}});
 }
-}// namespace FredEmmott::AudioDevices
+}// namespace FredEmmott::Audio
 
 void to_json(json& j, const AudioDeviceState& state) {
   switch (state) {

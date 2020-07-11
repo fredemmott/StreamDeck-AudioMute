@@ -9,7 +9,7 @@
 #include "AudioFunctions.h"
 #include <string>
 
-using namespace FredEmmott::AudioDevices;
+using namespace FredEmmott::Audio;
 
 struct DefaultAudioDevices {
   static const std::string DEFAULT_INPUT_ID;

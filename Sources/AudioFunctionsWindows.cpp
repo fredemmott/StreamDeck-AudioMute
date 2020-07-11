@@ -26,7 +26,7 @@
 
 using namespace FredEmmott::Encoding;
 
-namespace FredEmmott::AudioDevices {
+namespace FredEmmott::Audio {
 
 namespace {
 
@@ -434,4 +434,4 @@ AddDefaultAudioDeviceChangeCallback(DefaultChangeCallbackFun cb) {
     new DefaultChangeCallbackHandleImpl(impl, de));
 }
 
-}// namespace FredEmmott::AudioDevices
+}// namespace FredEmmott::Audio
