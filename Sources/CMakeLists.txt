@@ -3,6 +3,7 @@ set(
   BaseMuteAction.cpp
   DefaultAudioDevices.cpp
   ESDAction.cpp
+  ESDPlugin.cpp
   MuteAction.cpp
   MyStreamDeckPlugin.cpp
   ToggleMuteAction.cpp

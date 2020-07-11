@@ -27,7 +27,7 @@ LICENSE file.
 #include "ToggleMuteAction.h"
 #include "UnmuteAction.h"
 
-MyStreamDeckPlugin::MyStreamDeckPlugin() {
+MyStreamDeckPlugin::MyStreamDeckPlugin(): ESDPlugin() {
 #ifdef _MSC_VER
   CoInitializeEx(
     NULL, COINIT_MULTITHREADED);// initialize COM for the main thread
@@ -35,59 +35,6 @@ MyStreamDeckPlugin::MyStreamDeckPlugin() {
 }
 
 MyStreamDeckPlugin::~MyStreamDeckPlugin() {
-}
-
-void MyStreamDeckPlugin::KeyUpForAction(
-  const std::string& inAction,
-  const std::string& inContext,
-  const json& inPayload,
-  const std::string& inDeviceID) {
-  auto action = GetOrCreateAction(inAction, inContext);
-  if (!action) {
-    ESDLog("No action for keyup - {} {}", inAction, inContext);
-    return;
-  }
-  action->KeyUp(inPayload["settings"]);
-}
-
-void MyStreamDeckPlugin::WillAppearForAction(
-  const std::string& inAction,
-  const std::string& inContext,
-  const json& inPayload,
-  const std::string& inDeviceID) {
-  auto action = GetOrCreateAction(inAction, inContext);
-  if (!action) {
-    ESDLog("No action for WillAppear - {} {}", inAction, inContext);
-    return;
-  }
-  action->WillAppear(inPayload["settings"]);
-}
-
-void MyStreamDeckPlugin::SendToPlugin(
-  const std::string& inAction,
-  const std::string& inContext,
-  const json& inPayload,
-  const std::string& inDevice) {
-    auto action = GetOrCreateAction(inAction, inContext);
-  if (!action) {
-    ESDLog(
-      "Received plugin request for unknown action {} {}", inAction, inContext);
-    return;
-  }
-  action->SendToPlugin(inPayload);
-}
-
-void MyStreamDeckPlugin::DidReceiveSettings(
-  const std::string& inAction,
-  const std::string& inContext,
-  const json& inPayload,
-  const std::string& inDevice) {
-  auto action = GetOrCreateAction(inAction, inContext);
-  if (!action) {
-    ESDLog("No action for DidReceiveSettings: {} {}", inAction, inContext);
-    return;
-  }
-  action->DidReceiveSettings(inPayload["settings"]);
 }
 
 std::shared_ptr<ESDAction> MyStreamDeckPlugin::GetOrCreateAction(

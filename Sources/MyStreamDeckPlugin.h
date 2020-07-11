@@ -13,47 +13,22 @@ LICENSE file.
 
 #include <StreamDeckSDK/ESDBasePlugin.h>
 
+#include "ESDPlugin.h"
+
+#include <map>
 #include <mutex>
-#include <set>
 
-using json = nlohmann::json;
-
-class CallBackTimer;
-class ESDAction;
-
-class MyStreamDeckPlugin : public ESDBasePlugin {
+class MyStreamDeckPlugin : public ESDPlugin {
  public:
   MyStreamDeckPlugin();
   virtual ~MyStreamDeckPlugin();
 
-  void KeyUpForAction(
-    const std::string& inAction,
-    const std::string& inContext,
-    const json& inPayload,
-    const std::string& inDeviceID) override;
-
-  void WillAppearForAction(
-    const std::string& inAction,
-    const std::string& inContext,
-    const json& inPayload,
-    const std::string& inDeviceID) override;
-
-  void SendToPlugin(
-    const std::string& inAction,
-    const std::string& inContext,
-    const json& inPayload,
-    const std::string& inDevice) override;
-  void DidReceiveSettings(
-    const std::string& inAction,
-    const std::string& inContext,
-    const json& inPayload,
-    const std::string& inDevice) override;
+ protected:
+  std::shared_ptr<ESDAction> GetOrCreateAction(
+    const std::string& action,
+    const std::string& context);
 
  private:
   std::mutex mActionsMutex;
   std::map<std::string, std::shared_ptr<ESDAction>> mActions;
-
-  std::shared_ptr<ESDAction> GetOrCreateAction(
-    const std::string& action,
-    const std::string& context);
 };
