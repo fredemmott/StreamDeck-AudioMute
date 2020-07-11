@@ -24,8 +24,11 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
   virtual ~BaseMuteAction();
 
   void MuteStateDidChange(const nlohmann::json& settings, bool isMuted);
+  void SendToPlugin(const nlohmann::json& payload);
 
  protected:
+  virtual std::string GetActionID() const = 0;
+
   virtual void SettingsDidChange(
     const MuteActionSettings& old_settings,
     const MuteActionSettings& new_settings) final;

@@ -1,5 +1,6 @@
 #include "BaseMuteAction.h"
 
+#include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/EPLJSONUtils.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
@@ -15,6 +16,32 @@ void from_json(const json& json, MuteActionSettings& settings) {
     = EPLJSONUtils::GetBoolByName(json, "feedbackSounds", true);
 }
 
+void to_json(json& j, const AudioDeviceInfo& device) {
+	j = json({{"id", device.id},
+						{"interfaceName", device.interfaceName},
+						{"endpointName", device.endpointName},
+						{"displayName", device.displayName},
+						{"state", device.state}});
+}
+
+void to_json(json& j, const AudioDeviceState& state) {
+	switch (state) {
+		case AudioDeviceState::CONNECTED:
+			j = "connected";
+			return;
+		case AudioDeviceState::DEVICE_NOT_PRESENT:
+			j = "device_not_present";
+			return;
+		case AudioDeviceState::DEVICE_DISABLED:
+			j = "device_disabled";
+			return;
+		case AudioDeviceState::DEVICE_PRESENT_NO_CONNECTION:
+			j = "device_present_no_connection";
+			return;
+	}
+}
+
+
 BaseMuteAction::BaseMuteAction(
   ESDConnectionManager* esd_connection,
   const std::string& context)
@@ -26,6 +53,34 @@ BaseMuteAction::~BaseMuteAction() {
 
 std::string BaseMuteAction::GetRealDeviceID() const {
   return mRealDeviceID;
+}
+
+void BaseMuteAction::SendToPlugin(const nlohmann::json& payload) {
+
+	const auto event = EPLJSONUtils::GetStringByName(payload, "event");
+
+	if (event != "getDeviceList") {
+		return;
+	}
+	GetESD()->SendToPropertyInspector(
+		GetActionID(), GetContext(),
+		json{{"event", event},
+				 {"outputDevices", GetAudioDeviceList(AudioDeviceDirection::OUTPUT)},
+				 {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
+				 {"defaultDevices",
+					{{DefaultAudioDevices::DEFAULT_INPUT_ID,
+						DefaultAudioDevices::GetRealDeviceID(
+							DefaultAudioDevices::DEFAULT_INPUT_ID)},
+					 {DefaultAudioDevices::DEFAULT_OUTPUT_ID,
+						DefaultAudioDevices::GetRealDeviceID(
+							DefaultAudioDevices::DEFAULT_OUTPUT_ID)},
+					 {DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
+						DefaultAudioDevices::GetRealDeviceID(
+							DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)},
+					 {DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID,
+						DefaultAudioDevices::GetRealDeviceID(
+							DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID)}}}});
+
 }
 
 void BaseMuteAction::SettingsDidChange(

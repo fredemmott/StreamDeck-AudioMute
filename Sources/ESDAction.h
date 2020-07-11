@@ -11,8 +11,9 @@ class ESDAction {
   virtual ~ESDAction();
 
   virtual void DidReceiveSettings(const nlohmann::json& settings);
-  virtual void WillAppear(const nlohmann::json& settings);
   virtual void KeyUp(const nlohmann::json& settings);
+  virtual void SendToPlugin(const nlohmann::json& payload);
+  virtual void WillAppear(const nlohmann::json& settings);
 
  protected:
   std::string GetContext() const;

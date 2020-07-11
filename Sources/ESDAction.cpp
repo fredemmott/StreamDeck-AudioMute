@@ -21,8 +21,11 @@ ESDConnectionManager* ESDAction::GetESD() const {
   return mESDConnection;
 }
 
-void ESDAction::WillAppear(const nlohmann::json& settings) {
+void ESDAction::KeyUp(const nlohmann::json& settings) {
 }
 
-void ESDAction::KeyUp(const nlohmann::json& settings) {
+void ESDAction::SendToPlugin(const nlohmann::json& payload) {
+}
+
+void ESDAction::WillAppear(const nlohmann::json& settings) {
 }

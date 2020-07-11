@@ -6,6 +6,9 @@ class MuteAction final : public BaseMuteAction {
  public:
   MuteAction(ESDConnectionManager* esd, const std::string& context);
   static const std::string ACTION_ID;
+  virtual std::string GetActionID() const {
+    return ACTION_ID;
+  }
 
   static void PlayFeedbackSound();
 

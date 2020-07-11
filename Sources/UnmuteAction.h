@@ -8,6 +8,9 @@ class UnmuteAction final : public BaseMuteAction {
     ESDConnectionManager* esd,
     const std::string& context);
   static const std::string ACTION_ID;
+  virtual std::string GetActionID() const {
+    return ACTION_ID;
+  }
 
   static void PlayFeedbackSound();
  protected:
