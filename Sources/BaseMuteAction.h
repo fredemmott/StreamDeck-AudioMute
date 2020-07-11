@@ -8,9 +8,6 @@
 
 #include "ESDActionWithExternalState.h"
 
-class DefaultChangeCallbackHandle;
-class MuteCallbackHandle;
-
 struct MuteActionSettings {
   std::string deviceID;
   bool feedbackSounds = true;
@@ -21,6 +18,13 @@ struct MuteActionSettings {
 };
 
 void from_json(const nlohmann::json& json, MuteActionSettings& settings);
+
+namespace FredEmmott::AudioDevices {
+class DefaultChangeCallbackHandle;
+class MuteCallbackHandle;
+}// namespace FredEmmott::AudioDevices
+
+using namespace FredEmmott::AudioDevices;
 
 class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
  public:

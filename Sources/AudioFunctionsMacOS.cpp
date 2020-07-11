@@ -9,6 +9,8 @@
 
 #include "AudioFunctions.h"
 
+namespace FredEmmott::AudioDevices {
+
 namespace {
 
 std::string Utf8StringFromCFString(CFStringRef ref, size_t buf_size = 1024) {
@@ -235,10 +237,9 @@ AudioDeviceState GetAudioDeviceState(const std::string& id) {
     return AudioDeviceState::CONNECTED;
   }
 
-  const AudioObjectPropertyAddress prop = {
-    kAudioDevicePropertyJackIsConnected,
-    scope,
-    kAudioObjectPropertyElementMaster};
+  const AudioObjectPropertyAddress prop
+    = {kAudioDevicePropertyJackIsConnected, scope,
+       kAudioObjectPropertyElementMaster};
   const auto supports_jack = AudioObjectHasProperty(native_id, &prop);
   if (!supports_jack) {
     return AudioDeviceState::CONNECTED;
@@ -358,3 +359,5 @@ AddDefaultAudioDeviceChangeCallback(
   return std::make_unique<DefaultChangeCallbackHandle>(
     new DefaultChangeCallbackHandleImpl(cb));
 }
+
+}// namespace FredEmmott::AudioDevices

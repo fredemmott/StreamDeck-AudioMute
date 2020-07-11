@@ -26,6 +26,8 @@
 
 using namespace FredEmmott::Encoding;
 
+namespace FredEmmott::AudioDevices {
+
 namespace {
 
 EDataFlow AudioDeviceDirectionToEDataFlow(const AudioDeviceDirection dir) {
@@ -431,3 +433,5 @@ AddDefaultAudioDeviceChangeCallback(DefaultChangeCallbackFun cb) {
   return std::make_unique<DefaultChangeCallbackHandle>(
     new DefaultChangeCallbackHandleImpl(impl, de));
 }
+
+}// namespace FredEmmott::AudioDevices
