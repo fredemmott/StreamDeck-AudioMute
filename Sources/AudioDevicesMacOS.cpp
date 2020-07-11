@@ -7,7 +7,7 @@
 #include <CoreAudio/CoreAudio.h>
 #include <fmt/format.h>
 
-#include "AudioFunctions.h"
+#include "AudioDevices.h"
 
 namespace FredEmmott::Audio {
 

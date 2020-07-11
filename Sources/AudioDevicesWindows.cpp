@@ -13,7 +13,7 @@
 #include "Functiondiscoverykeys_devpkey.h"
 // clang-format on
 
-#include "AudioFunctions.h"
+#include "AudioDevices.h"
 #include "StringEncoding.h"
 
 #include <StreamDeckSDK/ESDLogger.h>

@@ -16,14 +16,14 @@ if(WIN32)
     APPEND SOURCES
     StringEncoding.cpp
     PlayWavFileWindows.cpp
-    AudioFunctionsWindows.cpp
+    AudioDevicesWindows.cpp
   )
 endif()
 if(APPLE)
   list(
     APPEND SOURCES
     PlayWavFileMacOS.cpp
-    AudioFunctionsMacOS.cpp
+    AudioDevicesMacOS.cpp
   )
 endif()
 

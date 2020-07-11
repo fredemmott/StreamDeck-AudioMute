@@ -6,7 +6,7 @@
 
 #include "DefaultAudioDevices.h"
 
-#include "AudioFunctions.h"
+#include "AudioDevices.h"
 
 const std::string DefaultAudioDevices::DEFAULT_INPUT_ID(
   "com.fredemmott.sdmute.deviceIds.defaultInput");

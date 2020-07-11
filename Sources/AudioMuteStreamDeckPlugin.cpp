@@ -13,7 +13,7 @@
 #include <atomic>
 #include <mutex>
 
-#include "AudioFunctions.h"
+#include "AudioDevices.h"
 #include "DefaultAudioDevices.h"
 #include "ESDAction.h"
 #include "MuteAction.h"

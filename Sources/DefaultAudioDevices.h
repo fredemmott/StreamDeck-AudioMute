@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "AudioFunctions.h"
+#include "AudioDevices.h"
 #include <string>
 
 using namespace FredEmmott::Audio;
