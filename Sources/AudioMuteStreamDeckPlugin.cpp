@@ -1,17 +1,10 @@
-//==============================================================================
-/**
-@file       MyStreamDeckPlugin.cpp
+/* Copyright (c) 2019-present, Fred Emmott
+ *
+ * This source code is licensed under the MIT-style license found in the
+ * LICENSE file.
+ */
 
-@brief      CPU plugin
-
-@copyright  (c) 2018, Corsair Memory, Inc.
-      This source code is licensed under the MIT-style license found in the
-LICENSE file.
-
-**/
-//==============================================================================
-
-#include "MyStreamDeckPlugin.h"
+#include "AudioMuteStreamDeckPlugin.h"
 
 #include <StreamDeckSDK/EPLJSONUtils.h>
 #include <StreamDeckSDK/ESDConnectionManager.h>
@@ -27,17 +20,17 @@ LICENSE file.
 #include "ToggleMuteAction.h"
 #include "UnmuteAction.h"
 
-MyStreamDeckPlugin::MyStreamDeckPlugin(): ESDPlugin() {
+AudioMuteStreamDeckPlugin::AudioMuteStreamDeckPlugin(): ESDPlugin() {
 #ifdef _MSC_VER
   CoInitializeEx(
     NULL, COINIT_MULTITHREADED);// initialize COM for the main thread
 #endif
 }
 
-MyStreamDeckPlugin::~MyStreamDeckPlugin() {
+AudioMuteStreamDeckPlugin::~AudioMuteStreamDeckPlugin() {
 }
 
-std::shared_ptr<ESDAction> MyStreamDeckPlugin::GetOrCreateAction(
+std::shared_ptr<ESDAction> AudioMuteStreamDeckPlugin::GetOrCreateAction(
   const std::string& action,
   const std::string& context) {
   std::scoped_lock lock(mActionsMutex);

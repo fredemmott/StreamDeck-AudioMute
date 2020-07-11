@@ -5,7 +5,7 @@ set(
   ESDAction.cpp
   ESDPlugin.cpp
   MuteAction.cpp
-  MyStreamDeckPlugin.cpp
+  AudioMuteStreamDeckPlugin.cpp
   ToggleMuteAction.cpp
   UnmuteAction.cpp
   main.cpp
