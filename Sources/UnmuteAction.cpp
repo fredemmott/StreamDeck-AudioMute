@@ -38,8 +38,7 @@ void UnmuteAction::KeyUp() {
   PlayFeedbackSound();
 }
 
-
 void UnmuteAction::PlayFeedbackSound() {
-  PlayWavFile(ESDUtilities::AddPathComponent(
+  FredEmmott::Audio::PlayWavFile(ESDUtilities::AddPathComponent(
     ESDUtilities::GetPluginDirectoryPath(), "unmute.wav"));
 }

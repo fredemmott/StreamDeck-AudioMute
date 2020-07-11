@@ -11,7 +11,11 @@
 
 #include <string>
 
+namespace FredEmmott::Audio {
+
 void PlayWavFile(const std::string& path) {
   const auto utf16 = FredEmmott::Encoding::Utf8ToUtf16(path);
   PlaySound(utf16.c_str(), NULL, SND_ASYNC| SND_NODEFAULT);
+}
+
 }

@@ -7,4 +7,8 @@
 
 #include <string>
 
+namespace FredEmmott::Audio {
+
 void PlayWavFile(const std::string& path);
+
+}

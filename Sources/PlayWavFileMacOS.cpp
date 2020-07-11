@@ -11,6 +11,8 @@
 
 #include <map>
 
+namespace FredEmmott::Audio {
+
 void PlayWavFile(const std::string& path) {
   static std::map<std::string, SystemSoundID> ids;
   const auto it = ids.find(path);
@@ -28,4 +30,6 @@ void PlayWavFile(const std::string& path) {
   }
   const auto id = ids.at(path);
   AudioServicesPlaySystemSound(id);
+}
+
 }
