@@ -12,7 +12,7 @@ class MuteAction final : public BaseMuteAction {
  public:
   MuteAction(ESDConnectionManager* esd, const std::string& context);
   static const std::string ACTION_ID;
-  virtual std::string GetActionID() const {
+  virtual std::string GetActionID() const override {
     return ACTION_ID;
   }
 
