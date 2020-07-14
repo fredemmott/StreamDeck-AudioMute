@@ -19,9 +19,6 @@
 #include <StreamDeckSDK/ESDLogger.h>
 
 #include <atlbase.h>
-#include <cassert>
-#include <codecvt>
-#include <locale>
 #include <comip.h>
 
 using namespace FredEmmott::Encoding;
