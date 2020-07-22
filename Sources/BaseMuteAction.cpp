@@ -137,3 +137,11 @@ void BaseMuteAction::RealDeviceDidChange() {
     device, [this](bool isMuted) { this->MuteStateDidChange(isMuted); }));
   MuteStateDidChange(IsAudioDeviceMuted(device));
 }
+
+void BaseMuteAction::KeyUp() {
+  try {
+    DoAction();
+  } catch (FredEmmott::Audio::device_error e) {
+    GetESD()->ShowAlertForContext(GetContext());
+  }
+}

@@ -31,7 +31,7 @@ void ToggleMuteAction::WillAppear() {
   MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
 }
 
-void ToggleMuteAction::KeyUp() {
+void ToggleMuteAction::DoAction() {
   const auto device(GetRealDeviceID());
   if (IsAudioDeviceMuted(device)) {
     UnmuteAudioDevice(device);

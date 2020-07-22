@@ -8,9 +8,28 @@
 
 #include <functional>
 #include <map>
+#include <stdexcept>
 #include <string>
 
 namespace FredEmmott::Audio {
+
+class device_error : public std::runtime_error {
+ protected:
+  device_error(const char* what) : std::runtime_error(what) {
+  }
+};
+
+class operation_not_supported_error : public device_error {
+ public:
+  operation_not_supported_error() : device_error("Operation not supported") {
+  }
+};
+
+class device_not_available_error : public device_error {
+ public:
+  device_not_available_error() : device_error("Device not available") {
+  }
+};
 
 enum class AudioDeviceRole {
   DEFAULT,

@@ -38,11 +38,13 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
 
  protected:
   virtual std::string GetActionID() const = 0;
+  virtual void DoAction() = 0;
 
   virtual void SettingsDidChange(
     const MuteActionSettings& old_settings,
     const MuteActionSettings& new_settings) final;
   virtual void MuteStateDidChange(bool isMuted) = 0;
+  virtual void KeyUp() final override;
   std::string GetRealDeviceID() const;
 
  private:

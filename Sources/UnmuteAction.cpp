@@ -29,7 +29,7 @@ void UnmuteAction::WillAppear() {
   MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
 }
 
-void UnmuteAction::KeyUp() {
+void UnmuteAction::DoAction() {
   const auto device(GetRealDeviceID());
   if (!IsAudioDeviceMuted(device)) {
     return;

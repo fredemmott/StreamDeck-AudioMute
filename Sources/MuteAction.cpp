@@ -25,7 +25,7 @@ void MuteAction::WillAppear() {
   MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
 }
 
-void MuteAction::KeyUp() {
+void MuteAction::DoAction() {
   if (IsAudioDeviceMuted(GetRealDeviceID())) {
     return;
   }

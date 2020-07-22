@@ -21,5 +21,5 @@ class MuteAction final : public BaseMuteAction {
  protected:
   virtual void MuteStateDidChange(bool isMuted) override;
   virtual void WillAppear() override;
-  virtual void KeyUp() override;
+  virtual void DoAction() override;
 };

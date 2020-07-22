@@ -59,6 +59,9 @@ CComPtr<IMMDevice> DeviceIDToDevice(const std::string& device_id) {
   CComPtr<IMMDevice> device;
   auto utf16 = Utf8ToUtf16(device_id);
   de->GetDevice(utf16.c_str(), &device);
+  if (!device) {
+    throw device_not_available_error();
+  }
   cache.emplace(device_id, device);
   return device;
 }
@@ -71,12 +74,12 @@ CComPtr<IAudioEndpointVolume> DeviceIDToAudioEndpointVolume(
     return cached->second;
   }
   auto device = DeviceIDToDevice(device_id);
-  if (!device) {
-    return nullptr;
-  }
   CComPtr<IAudioEndpointVolume> volume;
   device->Activate(
     __uuidof(IAudioEndpointVolume), CLSCTX_ALL, nullptr, (void**)&volume);
+  if (!volume) {
+    throw operation_not_supported_error();
+  }
   cache[device_id] = volume;
   return volume;
 }
@@ -290,13 +293,10 @@ std::unique_ptr<MuteCallbackHandle> AddAudioDeviceMuteUnmuteCallback(
   const std::string& deviceID,
   std::function<void(bool isMuted)> cb) {
   auto dev = DeviceIDToAudioEndpointVolume(deviceID);
-  if (!dev) {
-    return nullptr;
-  }
   auto impl = CComPtr(new VolumeCOMCallback(cb));
   auto ret = dev->RegisterControlChangeNotify(impl);
   if (ret != S_OK) {
-    return nullptr;
+    throw operation_not_supported_error();
   }
   return std::make_unique<MuteCallbackHandle>(
     new MuteCallbackHandleImpl(impl, dev));
