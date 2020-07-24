@@ -24,15 +24,6 @@ void from_json(const json& json, MuteActionSettings& settings) {
 
 namespace FredEmmott::Audio {
 
-void to_json(json& j, const AudioDeviceInfo& device) {
-  j = json({{"id", device.id},
-            {"interfaceName", device.interfaceName},
-            {"endpointName", device.endpointName},
-            {"displayName", device.displayName},
-            {"state", device.state}});
-}
-}// namespace FredEmmott::Audio
-
 void to_json(json& j, const AudioDeviceState& state) {
   switch (state) {
     case AudioDeviceState::CONNECTED:
@@ -49,6 +40,15 @@ void to_json(json& j, const AudioDeviceState& state) {
       return;
   }
 }
+
+void to_json(json& j, const AudioDeviceInfo& device) {
+  j = json({{"id", device.id},
+            {"interfaceName", device.interfaceName},
+            {"endpointName", device.endpointName},
+            {"displayName", device.displayName},
+            {"state", device.state}});
+}
+}// namespace FredEmmott::Audio
 
 BaseMuteAction::BaseMuteAction(
   ESDConnectionManager* esd_connection,
