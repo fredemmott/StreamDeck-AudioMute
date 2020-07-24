@@ -5,6 +5,7 @@
  */
 
 #include <CoreAudio/CoreAudio.h>
+#include <StreamDeckSDK/ESDLogger.h>
 #include <fmt/format.h>
 
 #include "AudioDevices.h"
@@ -31,7 +32,29 @@ T GetAudioObjectProperty(
   const AudioObjectPropertyAddress& prop) {
   T value;
   UInt32 size = sizeof(value);
-  AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &value);
+  const auto result
+    = AudioObjectGetPropertyData(id, &prop, 0, nullptr, &size, &value);
+  switch (result) {
+    case kAudioHardwareBadDeviceError:
+    case kAudioHardwareBadObjectError:
+      throw device_not_available_error();
+    case kAudioHardwareUnsupportedOperationError:
+    case kAudioHardwareUnknownPropertyError: {
+      char buf[5];
+      buf[4] = 0;
+      memcpy(buf, &prop.mSelector, 4);
+      buf[0] ^= buf[3];
+      buf[3] ^= buf[0];
+      buf[0] ^= buf[3];
+      buf[1] ^= buf[2];
+      buf[2] ^= buf[1];
+      buf[1] ^= buf[2];
+      ESDLog("Get prop bad prop: {}", buf);
+    }
+      throw operation_not_supported_error();
+    default:
+      break;
+  }
   return value;
 }
 
@@ -95,7 +118,22 @@ void SetAudioDeviceIsMuted(const std::string& id, bool muted) {
                                     ? kAudioDevicePropertyScopeInput
                                     : kAudioDevicePropertyScopeOutput,
                                   0};
-  AudioObjectSetPropertyData(native_id, &prop, 0, NULL, sizeof(value), &value);
+  const auto result = AudioObjectSetPropertyData(
+    native_id, &prop, 0, NULL, sizeof(value), &value);
+  switch (result) {
+    case kAudioHardwareBadDeviceError:
+    case kAudioHardwareBadObjectError:
+      ESDLog("bad device");
+      throw device_not_available_error();
+    case kAudioHardwareUnsupportedOperationError:
+    case kAudioHardwareUnknownPropertyError:
+      ESDLog("bad operation");
+      throw operation_not_supported_error();
+    default:
+      ESDLog("Unhandled error {}", result);
+    case kAudioHardwareNoError:
+      break;
+  }
 }
 
 }// namespace
@@ -141,9 +179,14 @@ namespace {
 std::string GetDataSourceName(
   AudioDeviceID device_id,
   AudioObjectPropertyScope scope) {
-  auto data_source = GetAudioObjectProperty<AudioObjectID>(
-    device_id,
-    {kAudioDevicePropertyDataSource, scope, kAudioObjectPropertyElementMaster});
+  AudioObjectID data_source;
+  try {
+    data_source = GetAudioObjectProperty<AudioObjectID>(
+      device_id, {kAudioDevicePropertyDataSource, scope,
+                  kAudioObjectPropertyElementMaster});
+  } catch (operation_not_supported_error) {
+    return std::string();
+  }
 
   CFStringRef value = nullptr;
   AudioValueTranslation translate{&data_source, sizeof(data_source), &value,

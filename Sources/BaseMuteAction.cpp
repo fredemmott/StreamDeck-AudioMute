@@ -135,7 +135,11 @@ void BaseMuteAction::RealDeviceDidChange() {
   const auto device(GetRealDeviceID());
   mMuteUnmuteCallbackHandle = std::move(AddAudioDeviceMuteUnmuteCallback(
     device, [this](bool isMuted) { this->MuteStateDidChange(isMuted); }));
-  MuteStateDidChange(IsAudioDeviceMuted(device));
+  try {
+    MuteStateDidChange(IsAudioDeviceMuted(device));
+  } catch (device_error) {
+    GetESD()->ShowAlertForContext(GetContext());
+  }
 }
 
 void BaseMuteAction::KeyUp() {
