@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "ESDActionWithExternalState.h"
+#include <StreamDeckSDK/ESDActionWithExternalState.h>
 
 struct MuteActionSettings {
   std::string deviceID;

@@ -7,6 +7,7 @@
 #include "AudioMuteStreamDeckPlugin.h"
 
 #include <StreamDeckSDK/EPLJSONUtils.h>
+#include <StreamDeckSDK/ESDAction.h>
 #include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
@@ -15,7 +16,6 @@
 
 #include "AudioDevices.h"
 #include "DefaultAudioDevices.h"
-#include "ESDAction.h"
 #include "MuteAction.h"
 #include "ToggleMuteAction.h"
 #include "UnmuteAction.h"

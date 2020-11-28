@@ -4,9 +4,7 @@
  * LICENSE file.
  */
 
-#include <StreamDeckSDK/ESDBasePlugin.h>
-
-#include "ESDPlugin.h"
+#include <StreamDeckSDK/ESDPlugin.h>
 
 #include <map>
 #include <mutex>

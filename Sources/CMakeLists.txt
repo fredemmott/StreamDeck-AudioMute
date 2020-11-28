@@ -2,8 +2,6 @@ set(
   SOURCES
   BaseMuteAction.cpp
   DefaultAudioDevices.cpp
-  ESDAction.cpp
-  ESDPlugin.cpp
   MuteAction.cpp
   AudioMuteStreamDeckPlugin.cpp
   ToggleMuteAction.cpp
