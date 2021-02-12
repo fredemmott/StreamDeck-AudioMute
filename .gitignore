@@ -4,3 +4,4 @@ build/
 *.swp
 *.orig
 .vscode/
+.DS_Store
