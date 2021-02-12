@@ -20,6 +20,9 @@
       "States": [
         {
           "Image": "mic-off"
+        },
+        {
+          "Image": "mic-off"
         }
       ],
       "SupportedInMultiActions": true,
@@ -32,7 +35,10 @@
 			"States": [
 				{
 					"Image": "mic-on"
-				}
+				},
+        {
+          "Image": "mic-on"
+        }
 			],
 
       "SupportedInMultiActions": true,
