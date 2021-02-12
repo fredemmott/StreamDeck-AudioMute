@@ -41,12 +41,12 @@ jobs:
         with:
           name: Windows-${{matrix.build-type}}
           path: build/Sources/${{matrix.build-type}}/sdmicmute.exe
-			- name: Upload Windows Debug Symbols
-				if: matrix.os == 'windows' && matrix.build_type != 'Release'
-				uses: actions/upload-artifact@v2
-				with:
-					name: Windows-${{matrix.build-type}}
-					path: build/Sources/${{matrix.build-type}}/sdmicmute.pdb
+      - name: Upload Windows Debug Symbols
+        if: matrix.os == 'windows' && matrix.build_type != 'Release'
+        uses: actions/upload-artifact@v2
+        with:
+          name: Windows-${{matrix.build-type}}
+          path: build/Sources/${{matrix.build-type}}/sdmicmute.pdb
     strategy:
       matrix:
         os: [windows, macos]
