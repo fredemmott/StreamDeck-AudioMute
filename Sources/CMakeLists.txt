@@ -45,7 +45,13 @@ elseif(WIN32)
   target_link_libraries(sdmicmute Winmm)
 endif()
 
-set_target_properties(sdmicmute PROPERTIES CXX_STANDARD 20)
+set_target_properties(
+  sdmicmute
+  PROPERTIES
+  CXX_STANDARD 20
+  CXX_EXTENSIONS OFF
+  CXX_STANDARD_REQUIRED ON
+)
 target_compile_definitions(sdmicmute PRIVATE -DHAVE_FEEDBACK_SOUNDS=1)
 install(TARGETS sdmicmute DESTINATION ${CMAKE_INSTALL_PREFIX})
 sign_target(sdmicmute)
