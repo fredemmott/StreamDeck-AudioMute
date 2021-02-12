@@ -99,7 +99,7 @@ jobs:
             artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
             com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
           PDB_SRC=artifacts/Windows-${{matrix.build-type}}/sdmicmute.pdb
-          if [ -e $PDB_SRC]; then
+          if [ -e $PDB_SRC ]; then
             install -m755 \
               ${PDB_SRC} \
               com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.pdb
