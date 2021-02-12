@@ -54,6 +54,7 @@
   "PropertyInspectorPath": "propertyinspector/index.html",
   "Name": "Audio Mute",
   "Category": "Audio Devices",
+  "CategoryIcon": "glyphicons-basic-140-adjust",
   "Icon": "mic-off",
   "Version": "${CMAKE_PROJECT_VERSION}",
   "OS": [
