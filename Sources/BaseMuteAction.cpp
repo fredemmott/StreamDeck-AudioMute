@@ -16,8 +16,14 @@
 using json = nlohmann::json;
 
 void from_json(const json& json, MuteActionSettings& settings) {
+  const auto default_id =
+    DefaultAudioDevices::GetRealDeviceID(
+      DefaultAudioDevices::COMMUNICATIONS_INPUT_ID
+    ).empty()
+    ? DefaultAudioDevices::DEFAULT_INPUT_ID
+    : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID;
   settings.deviceID = EPLJSONUtils::GetStringByName(
-    json, "deviceID", DefaultAudioDevices::COMMUNICATIONS_INPUT_ID);
+    json, "deviceID", default_id);
   settings.feedbackSounds
     = EPLJSONUtils::GetBoolByName(json, "feedbackSounds", true);
 }
