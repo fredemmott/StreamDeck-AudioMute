@@ -55,3 +55,7 @@ set_target_properties(
 target_compile_definitions(sdmicmute PRIVATE -DHAVE_FEEDBACK_SOUNDS=1)
 install(TARGETS sdmicmute DESTINATION ${CMAKE_INSTALL_PREFIX})
 sign_target(sdmicmute)
+
+if(WIN32)
+  install(FILES "$<TARGET_PDB_FILE:sdmicmute>" TYPE BIN OPTIONAL)
+endif()
