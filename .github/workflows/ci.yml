@@ -41,10 +41,16 @@ jobs:
         with:
           name: Windows-${{matrix.build-type}}
           path: build/Sources/${{matrix.build-type}}/sdmicmute.exe
+			- name: Upload Windows Debug Symbols
+				if: matrix.os == 'windows' && matrix.build_type != 'Release'
+				uses: actions/upload-artifact@v2
+				with:
+					name: Windows-${{matrix.build-type}}
+					path: build/Sources/${{matrix.build-type}}/sdmicmute.pdb
     strategy:
       matrix:
         os: [windows, macos]
-        build-type: [ReWithDebInfo, Debug]
+        build-type: [RelWithDebInfo, Debug]
   streamDeckPlugin:
     name: streamDeckPlugin/${{matrix.build-type}}
     needs: [build]
@@ -80,6 +86,12 @@ jobs:
           install -m755 \
             artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
             com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
+          PDB_SRC=artifacts/Windows-${{matrix.build-type}}/sdmicmute.pdb
+          if [ -e $PDB_SRC]; then
+            install -m755 \
+              ${PDB_SRC} \
+              com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.pdb
+          fi
       - name: Checkout DistributionTool
         uses: actions/checkout@v2
         with:
