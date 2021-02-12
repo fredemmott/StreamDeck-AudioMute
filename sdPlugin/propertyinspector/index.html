@@ -28,7 +28,7 @@
     <details>
       <summary>Standard vs Specific Devices</summary>
       <p>
-        If you select a 'standard' device, Windows sound settings can change what physical
+        If you select a 'standard' device, system sound settings can change what physical
         device this plugin affects.
       </p>
       <p>
@@ -82,9 +82,10 @@
       if (settings.deviceID == deviceID) {
         option.setAttribute('selected', true);
       }
-      option.appendChild(document.createTextNode(label));
-      if (extra != null) {
-        option.appendChild(document.createTextNode(' - ' + extra));
+      if (extra) {
+        option.textContent = `${label} - ${extra}`;
+      } else {
+        option.textContent = label;
       }
       return option;
     }
@@ -170,11 +171,20 @@
         outputGroup.appendChild(createDeviceElement(deviceID, display_name(device)));
       });
 
+      const deviceElement = document.querySelector(`#device option[value="${settings.deviceID}"]`);
+      if (settings.deviceContainer && !deviceElement) {
+        const container = document.getElementById(settings.deviceContainer);
+        container.appendChild(createDeviceElement(settings.deviceID, settings.deviceLabel));
+      }
+
       document.getElementById('mainWrapper').classList.remove('hidden');
     }
 
     function saveSettings() {
       settings.deviceID = document.getElementById('device').value;
+      const deviceElement = document.querySelector(`#device option[value="${settings.deviceID}"]`);
+      settings.deviceLabel = deviceElement.textContent;
+      settings.deviceContainer = deviceElement.parentElement.id;
       settings.feedbackSounds = document.getElementById('feedbackSounds').checked;
       console.log('saving settings', settings);
       $SD.api.setSettings(uuid, settings);
