@@ -22,7 +22,7 @@ jobs:
           cmake ${{github.workspace}}/source `
             "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
-            -DCMAKE_OSX_ARCHITECTURES=${{matrix.arch}}
+            -DCMAKE_OSX_ARCHITECTURES=${{matrix.arch}} `
             "-DCMAKE_INSTALL_PREFIX=${{github.workspace}}/com.fredemmott.micmutetoggle.sdPlugin"
       - name: Compile
         working-directory: build
