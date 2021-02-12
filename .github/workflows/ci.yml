@@ -2,7 +2,7 @@ name: Continuous Integration
 on: [push, pull_request]
 jobs:
   build:
-    name: Build ${{matrix.os}}/${{matrix.build-type}}
+    name: Build ${{matrix.os}}/${{matrix.arch}/${{matrix.build-type}}
     runs-on: ${{matrix.os}}-latest
     steps:
       - uses: actions/checkout@v2
@@ -22,6 +22,7 @@ jobs:
           cmake ${{github.workspace}}/source `
             "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx" `
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}} `
+            -DCMAKE_OSX_ARCHITECTURES=${{matrix.arch}}
             "-DCMAKE_INSTALL_PREFIX=${{github.workspace}}/com.fredemmott.micmutetoggle.sdPlugin"
       - name: Compile
         working-directory: build
@@ -33,7 +34,7 @@ jobs:
         if: matrix.os == 'macos'
         uses: actions/upload-artifact@v2
         with:
-          name: Mac-${{matrix.build-type}}
+          name: MacOS-${{matrix.arch}}-${{matrix.build-type}}
           path: build/Sources/sdmicmute
       - name: Upload Windows Executable
         if: matrix.os == 'windows'
@@ -49,8 +50,18 @@ jobs:
           path: build/Sources/${{matrix.build-type}}/sdmicmute.pdb
     strategy:
       matrix:
-        os: [windows, macos]
+        target: [windows, macos-arm64, macos-x86_64]
         build-type: [RelWithDebInfo, Debug]
+        include:
+          - target: windows
+            os: windows
+            arch: x86_64
+          - target: macos-arm64
+            os: macos
+            arch: arm64
+          - target: macos-x86_64
+            os: macos
+            arch: x86_64
   streamDeckPlugin:
     name: streamDeckPlugin/${{matrix.build-type}}
     needs: [build]
@@ -80,9 +91,10 @@ jobs:
       - name: Copy executables
         working-directory: ${{runner.temp}}
         run: |
-          install -m755 \
-            artifacts/Mac-${{matrix.build-type}}/sdmicmute \
-            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
+          lipo -create \
+            artifacts/MacOS-arm64-${{matrix.build-type}}/sdmicmute \
+            artifacts/MacOS-x86_64-${{matrix.build-type}}/sdmicmute \
+            -output com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
           install -m755 \
             artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
             com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
