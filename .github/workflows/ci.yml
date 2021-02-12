@@ -44,7 +44,7 @@ jobs:
     strategy:
       matrix:
         os: [windows, macos]
-        build-type: [Release, Debug]
+        build-type: [ReWithDebInfo, Debug]
   streamDeckPlugin:
     name: streamDeckPlugin/${{matrix.build-type}}
     needs: [build]
@@ -96,7 +96,7 @@ jobs:
           path: com.fredemmott.micmutetoggle.streamDeckPlugin
     strategy:
       matrix:
-        build-type: [Release, Debug]
+        build-type: [RelWithDebInfo, Debug]
   release:
     needs: [streamDeckPlugin]
     runs-on: ubuntu-latest
@@ -133,7 +133,7 @@ jobs:
         GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: ${{runner.temp}}/artifacts/Release-StreamDeckPlugin/com.fredemmott.micmutetoggle.streamDeckPlugin
+        asset_path: ${{runner.temp}}/artifacts/RelWithDebInfo-StreamDeckPlugin/com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_name: com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_content_type: application/octet-stream
     - name: Attach Debug Build
