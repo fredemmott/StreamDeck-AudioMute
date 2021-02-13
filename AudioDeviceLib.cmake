@@ -2,8 +2,8 @@ include(ExternalProject)
 
 ExternalProject_Add(
   AudioDeviceLib_build
-  GIT_REPOSITORY https://github.com/fredemmott/AudioDeviceLib
-  GIT_TAG a782d113e941aa57ced3c62414ae15da2ba6649c
+  URL https://github.com/fredemmott/AudioDeviceLib/releases/download/v1.0beta4/AudioDeviceLib-v1.0beta4.zip
+  URL_HASH SHA512=82b6e572f7bedde72b9997369e9169e11e33b8287c52b634ac09082745f265bdeb0b9f82914ac30c59e14af241fc941937e11cc058115d0749e250d837885449
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
