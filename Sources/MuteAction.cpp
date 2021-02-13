@@ -8,7 +8,7 @@
 #include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDUtilities.h>
 
-#include "AudioDevices.h"
+#include <AudioDevices/AudioDevices.h>
 #include "PlayWavFile.h"
 
 const std::string MuteAction::ACTION_ID("com.fredemmott.micmutetoggle.mute");

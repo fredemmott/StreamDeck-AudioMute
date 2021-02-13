@@ -10,7 +10,7 @@
 #include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
-#include "AudioDevices.h"
+#include <AudioDevices/AudioDevices.h>
 #include "DefaultAudioDevices.h"
 
 using json = nlohmann::json;
