@@ -50,5 +50,5 @@ install(TARGETS sdmicmute DESTINATION ${CMAKE_INSTALL_PREFIX})
 sign_target(sdmicmute)
 
 if(WIN32)
-  install(FILES "$<TARGET_PDB_FILE:sdmicmute>" TYPE BIN OPTIONAL)
+  install(FILES "$<TARGET_PDB_FILE:sdmicmute>" DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()
