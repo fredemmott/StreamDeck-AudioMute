@@ -6,7 +6,6 @@
 
 #include "ToggleMuteAction.h"
 
-#include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
 #include <AudioDevices/AudioDevices.h>
@@ -16,15 +15,9 @@
 const std::string ToggleMuteAction::ACTION_ID(
   "com.fredemmott.micmutetoggle.toggle");
 
-ToggleMuteAction::ToggleMuteAction(
-  ESDConnectionManager* esd,
-  const std::string& context)
-  : BaseMuteAction(esd, context) {
-}
-
 void ToggleMuteAction::MuteStateDidChange(bool isMuted) {
   ESDDebug("MuteStateDidChange to {} for context {}", isMuted, GetContext());
-  GetESD()->SetState(isMuted ? 0 : 1, GetContext());
+  SetState(isMuted ? 0 : 1);
 }
 
 void ToggleMuteAction::WillAppear() {

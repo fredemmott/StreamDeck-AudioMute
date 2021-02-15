@@ -44,21 +44,21 @@ std::shared_ptr<ESDAction> AudioMuteStreamDeckPlugin::GetOrCreateAction(
 
   if (action == ToggleMuteAction::ACTION_ID) {
     ESDDebug("Creating ToggleMuteAction");
-    auto impl = std::make_shared<ToggleMuteAction>(mConnectionManager, context);
+    auto impl = std::make_shared<ToggleMuteAction>(mConnectionManager, action, context);
     mActions.emplace(context, impl);
     return impl;
   }
 
   if (action == MuteAction::ACTION_ID) {
     ESDDebug("Creating MuteAction");
-    auto impl = std::make_shared<MuteAction>(mConnectionManager, context);
+    auto impl = std::make_shared<MuteAction>(mConnectionManager, action, context);
     mActions.emplace(context, impl);
     return impl;
   }
 
   if (action == UnmuteAction::ACTION_ID) {
     ESDDebug("Creating UnmuteAction");
-    auto impl = std::make_shared<UnmuteAction>(mConnectionManager, context);
+    auto impl = std::make_shared<UnmuteAction>(mConnectionManager, action, context);
     mActions.emplace(context, impl);
     return impl;
   }

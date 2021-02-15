@@ -7,7 +7,6 @@
 #include "BaseMuteAction.h"
 
 #include <StreamDeckSDK/EPLJSONUtils.h>
-#include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
 #include <AudioDevices/AudioDevices.h>
@@ -56,12 +55,6 @@ void to_json(json& j, const AudioDeviceInfo& device) {
 }
 }// namespace FredEmmott::Audio
 
-BaseMuteAction::BaseMuteAction(
-  ESDConnectionManager* esd_connection,
-  const std::string& context)
-  : ESDActionWithExternalState(esd_connection, context) {
-}
-
 BaseMuteAction::~BaseMuteAction() {
 }
 
@@ -75,8 +68,7 @@ void BaseMuteAction::SendToPlugin(const nlohmann::json& payload) {
   if (event != "getDeviceList") {
     return;
   }
-  GetESD()->SendToPropertyInspector(
-    GetActionID(), GetContext(),
+  SendToPropertyInspector(
     json{{"event", event},
          {"outputDevices", GetAudioDeviceList(AudioDeviceDirection::OUTPUT)},
          {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
@@ -144,7 +136,7 @@ void BaseMuteAction::RealDeviceDidChange() {
   try {
     MuteStateDidChange(IsAudioDeviceMuted(device));
   } catch (device_error) {
-    GetESD()->ShowAlertForContext(GetContext());
+    ShowAlert();
   }
 }
 
@@ -152,6 +144,6 @@ void BaseMuteAction::KeyUp() {
   try {
     DoAction();
   } catch (FredEmmott::Audio::device_error e) {
-    GetESD()->ShowAlertForContext(GetContext());
+    ShowAlert();
   }
 }

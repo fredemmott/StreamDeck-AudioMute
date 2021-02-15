@@ -28,16 +28,13 @@ using namespace FredEmmott::Audio;
 
 class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
  public:
-  BaseMuteAction(
-    ESDConnectionManager* esd_connection,
-    const std::string& context);
+  using ESDActionWithExternalState<MuteActionSettings>::ESDActionWithExternalState;
   virtual ~BaseMuteAction();
 
   void MuteStateDidChange(const nlohmann::json& settings, bool isMuted);
   void SendToPlugin(const nlohmann::json& payload) override;
 
  protected:
-  virtual std::string GetActionID() const = 0;
   virtual void DoAction() = 0;
 
   virtual void SettingsDidChange(

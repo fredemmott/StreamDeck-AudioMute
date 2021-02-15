@@ -9,13 +9,8 @@
 
 class ToggleMuteAction final : public BaseMuteAction {
  public:
-  ToggleMuteAction(
-    ESDConnectionManager* esd,
-    const std::string& context);
+  using BaseMuteAction::BaseMuteAction;
   static const std::string ACTION_ID;
-  virtual std::string GetActionID() const override {
-    return ACTION_ID;
-  }
 
  protected:
   virtual void MuteStateDidChange(bool isMuted) override;

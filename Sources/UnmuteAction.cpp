@@ -6,7 +6,6 @@
 
 #include "UnmuteAction.h"
 
-#include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDUtilities.h>
 
 #include <AudioDevices/AudioDevices.h>
@@ -15,14 +14,8 @@
 const std::string UnmuteAction::ACTION_ID(
   "com.fredemmott.micmutetoggle.unmute");
 
-UnmuteAction::UnmuteAction(
-  ESDConnectionManager* esd,
-  const std::string& context)
-  : BaseMuteAction(esd, context) {
-}
-
 void UnmuteAction::MuteStateDidChange(bool isMuted) {
-  GetESD()->SetState(isMuted ? 1 : 0, GetContext());
+  SetState(isMuted ? 1 : 0);
 }
 
 void UnmuteAction::WillAppear() {
