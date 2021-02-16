@@ -28,9 +28,13 @@ void ToggleMuteAction::DoAction() {
   const auto device(GetRealDeviceID());
   if (IsAudioDeviceMuted(device)) {
     UnmuteAudioDevice(device);
-    UnmuteAction::PlayFeedbackSound();
+    if (FeedbackSoundsEnabled()) {
+      UnmuteAction::PlayFeedbackSound();
+    }
   } else {
     MuteAudioDevice(device);
-    MuteAction::PlayFeedbackSound();
+    if (FeedbackSoundsEnabled()) {
+      MuteAction::PlayFeedbackSound();
+    }
   }
 }

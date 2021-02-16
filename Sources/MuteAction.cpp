@@ -25,7 +25,9 @@ void MuteAction::DoAction() {
     return;
   }
   MuteAudioDevice(GetRealDeviceID());
-  PlayFeedbackSound();
+  if (FeedbackSoundsEnabled()) {
+    PlayFeedbackSound();
+  }
 }
 
 void MuteAction::PlayFeedbackSound() {

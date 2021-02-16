@@ -28,7 +28,9 @@ void UnmuteAction::DoAction() {
     return;
   }
   UnmuteAudioDevice(device);
-  PlayFeedbackSound();
+  if (FeedbackSoundsEnabled()) {
+    PlayFeedbackSound();
+  }
 }
 
 void UnmuteAction::PlayFeedbackSound() {

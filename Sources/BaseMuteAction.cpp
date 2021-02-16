@@ -90,6 +90,7 @@ void BaseMuteAction::SendToPlugin(const nlohmann::json& payload) {
 void BaseMuteAction::SettingsDidChange(
   const MuteActionSettings& old_settings,
   const MuteActionSettings& new_settings) {
+  mFeedbackSounds = new_settings.feedbackSounds;
   if (old_settings.deviceID == new_settings.deviceID) {
     return;
   }
@@ -127,6 +128,10 @@ void BaseMuteAction::SettingsDidChange(
         GetContext());
       RealDeviceDidChange();
     }));
+}
+
+bool BaseMuteAction::FeedbackSoundsEnabled() const {
+  return mFeedbackSounds;
 }
 
 void BaseMuteAction::RealDeviceDidChange() {
