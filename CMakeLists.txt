@@ -7,7 +7,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(
   com.fredemmott.micmutetoggle.sdPlugin
-  VERSION 3.0.1
+  VERSION 3.1.0
   LANGUAGES CXX
 )
 
