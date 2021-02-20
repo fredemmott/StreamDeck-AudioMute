@@ -5,6 +5,9 @@
   <title>com.fredemmott.sdmicmute PI</title>
   <meta charset="utf-8" />
   <link rel="stylesheet" href="css/sdpi.css">
+  <style type="text/css">
+    .hidden { display: none !important; }
+  </style>
 </head>
 
 <body>
@@ -19,6 +22,11 @@
         <optgroup label="Specific Output Device" id="outputDevices">
         </optgroup>
       </select>
+    </div>
+    <div type="checkbox" class="sdpi-item hidden" id="pttDiv">
+      <div class="sdpi-item-label">PTT</div>
+      <input class="sdpi-item-value" id="ptt" type="checkbox" onchange="saveSettings()">
+      <label for="ptt"><span></span>Push-and-hold for PTT/PTM</label>
     </div>
     <div type="checkbox" class="sdpi-item">
       <div class="sdpi-item-label">Feedback</div>
@@ -40,6 +48,9 @@
 
   <script src="common.js"></script>
   <script>
+    const ACTION_IDS = {
+      toggle: "com.fredemmott.micmutetoggle.toggle",
+    };
 
     /** Step 1: Subscribe to the 'connected' event
      * and call your own initialization method.
@@ -70,6 +81,13 @@
       ctx = jsonObj.actionInfo.context;
       if (!'feedbackSounds' in settings) {
         settings.feedbackSounds = true;
+      }
+      if (actionInfo == ACTION_IDS.toggle) {
+        if (!'ptt' in settings) {
+          settings.ptt = false;
+        }
+        document.getElementById('pttDiv').classList.remove('hidden');
+        document.getElementById('ptt').checked = settings.ptt;
       }
       document.getElementById('feedbackSounds').checked = settings.feedbackSounds;
 
@@ -132,7 +150,6 @@
       dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultInput, "Default Input", defaultInput.displayName));
       dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.defaultOutput, "Default Output", defaultOutput.displayName));
       if (communicationsInput) {
-        console.log({communicationsInput, communicationsOutput});
         dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsInput, "Communications Input", communicationsInput.displayName));
         dynamicGroup.appendChild(createDeviceElement(SPECIAL_IDS.communicationsOutput, "Communications Output", communicationsOutput.displayName));
       }
@@ -187,6 +204,9 @@
       settings.deviceLabel = deviceElement.textContent;
       settings.deviceContainer = deviceElement.parentElement.id;
       settings.feedbackSounds = document.getElementById('feedbackSounds').checked;
+      if (actionInfo == ACTION_IDS.toggle) {
+        settings.ptt = document.getElementById('ptt').checked;
+      }
       console.log('saving settings', settings);
       $SD.api.setSettings(uuid, settings);
     }

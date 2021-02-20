@@ -7,13 +7,25 @@
 
 #include "BaseMuteAction.h"
 
+#include <asio.hpp>
+#include <chrono>
+
 class ToggleMuteAction final : public BaseMuteAction {
  public:
   using BaseMuteAction::BaseMuteAction;
   static const std::string ACTION_ID;
 
+  virtual void KeyDown() override;
+  virtual void KeyUp() override;
+
  protected:
+  virtual void SettingsDidChange(const MuteActionSettings& oldSettings, const MuteActionSettings& newSettings) override;
+
   virtual void MuteStateDidChange(bool isMuted) override;
   virtual void WillAppear() override;
   virtual void DoAction() override;
+ private:
+  bool mPushAndHoldToTalk = false;
+  std::chrono::steady_clock::time_point mKeyDownTime;
+  std::unique_ptr<asio::steady_timer> mPttReleaseTimer;
 };

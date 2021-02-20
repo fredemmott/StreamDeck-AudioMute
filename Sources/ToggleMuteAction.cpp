@@ -6,9 +6,10 @@
 
 #include "ToggleMuteAction.h"
 
+#include <AudioDevices/AudioDevices.h>
+#include <StreamDeckSDK/ESDConnectionManager.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
-#include <AudioDevices/AudioDevices.h>
 #include "MuteAction.h"
 #include "UnmuteAction.h"
 
@@ -37,4 +38,47 @@ void ToggleMuteAction::DoAction() {
       MuteAction::PlayFeedbackSound();
     }
   }
+}
+
+void ToggleMuteAction::KeyUp() {
+  if (mPushAndHoldToTalk) {
+    const bool muted = IsAudioDeviceMuted(GetRealDeviceID());
+    if (std::chrono::steady_clock::now() - mKeyDownTime < std::chrono::milliseconds(500)) {
+      // Short press, and action already taken on keydown - but the streamdeck
+      // software automatically switches state on key up. Undo this.
+      MuteStateDidChange(muted);
+      return;
+    }
+
+    if (muted) {
+      // PTM-mode, unmute immediately...
+      DoAction();
+      return;
+    }
+
+    // PTT: people tend to let go of the button just a little too soon, so delay
+    auto ctx = GetESD()->GetAsioContext();
+    mPttReleaseTimer = std::make_unique<asio::steady_timer>(*ctx, std::chrono::milliseconds(250));
+    mPttReleaseTimer->async_wait([this](const asio::error_code& ec) { if (ec) { return; } DoAction(); });
+    return;
+  }
+  BaseMuteAction::KeyUp();
+}
+
+void ToggleMuteAction::KeyDown() {
+  if (mPushAndHoldToTalk) {
+    DoAction();
+    mKeyDownTime = std::chrono::steady_clock::now();
+    return;
+  }
+  BaseMuteAction::KeyDown();
+}
+
+
+void ToggleMuteAction::SettingsDidChange(
+  const MuteActionSettings& oldSettings,
+  const MuteActionSettings& newSettings
+) {
+  mPushAndHoldToTalk = newSettings.ptt;
+  BaseMuteAction::SettingsDidChange(oldSettings, newSettings);
 }

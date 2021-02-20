@@ -21,10 +21,9 @@ void from_json(const json& json, MuteActionSettings& settings) {
     ).empty()
     ? DefaultAudioDevices::DEFAULT_INPUT_ID
     : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID;
-  settings.deviceID = EPLJSONUtils::GetStringByName(
-    json, "deviceID", default_id);
-  settings.feedbackSounds
-    = EPLJSONUtils::GetBoolByName(json, "feedbackSounds", true);
+  settings.deviceID = json.value<std::string>("deviceID", default_id);
+  settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
+  settings.ptt = json.value<bool>("ptt", false);
 }
 
 namespace FredEmmott::Audio {

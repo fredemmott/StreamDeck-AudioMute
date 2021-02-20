@@ -11,12 +11,12 @@
 struct MuteActionSettings {
   std::string deviceID;
   bool feedbackSounds = true;
+  bool ptt = false;
 
   bool operator==(const MuteActionSettings& other) const {
-    return deviceID == other.deviceID && feedbackSounds == other.feedbackSounds;
+    return deviceID == other.deviceID && feedbackSounds == other.feedbackSounds && ptt == other.ptt;
   }
 };
-
 void from_json(const nlohmann::json& json, MuteActionSettings& settings);
 
 namespace FredEmmott::Audio {
@@ -39,9 +39,9 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
 
   virtual void SettingsDidChange(
     const MuteActionSettings& old_settings,
-    const MuteActionSettings& new_settings) final;
+    const MuteActionSettings& new_settings);
   virtual void MuteStateDidChange(bool isMuted) = 0;
-  virtual void KeyUp() final override;
+  virtual void KeyUp() override;
   std::string GetRealDeviceID() const;
   virtual bool FeedbackSoundsEnabled() const;
 
