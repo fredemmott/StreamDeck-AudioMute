@@ -22,7 +22,11 @@ void ToggleMuteAction::MuteStateDidChange(bool isMuted) {
 }
 
 void ToggleMuteAction::WillAppear() {
-  MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
+  try {
+    MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
+  } catch (FredEmmott::Audio::device_error&) {
+    ShowAlert();
+  }
 }
 
 void ToggleMuteAction::DoAction() {
