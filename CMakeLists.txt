@@ -26,10 +26,13 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   )
 endif()
 
-include_directories("${CMAKE_SOURCE_DIR}")
-
 include("AudioDeviceLib.cmake")
 include("StreamDeckSDK.cmake")
+
+set_default_install_dir_to_streamdeck_plugin_dir()
+
+include_directories("${CMAKE_SOURCE_DIR}")
+
 
 include(sign_target.cmake)
 add_subdirectory(Sources)
