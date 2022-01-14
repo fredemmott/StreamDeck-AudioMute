@@ -4,12 +4,12 @@
  * LICENSE file.
  */
 
-#include "PlayWavFile.h"
-
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreFoundation/CoreFoundation.h>
 
 #include <map>
+
+#include "PlayWavFile.h"
 
 namespace FredEmmott::Audio {
 
@@ -19,8 +19,8 @@ void PlayWavFile(const std::string& path) {
   if (it == ids.end()) {
     CFStringRef cfpath
       = CFStringCreateWithCString(NULL, path.c_str(), kCFStringEncodingUTF8);
-    CFURLRef cfurl
-      = CFURLCreateWithFileSystemPath(NULL, cfpath, kCFURLPOSIXPathStyle, false);
+    CFURLRef cfurl = CFURLCreateWithFileSystemPath(
+      NULL, cfpath, kCFURLPOSIXPathStyle, false);
     SystemSoundID id;
     AudioServicesCreateSystemSoundID(cfurl, &id);
     ids.emplace(path, id);
@@ -32,4 +32,4 @@ void PlayWavFile(const std::string& path) {
   AudioServicesPlaySystemSound(id);
 }
 
-}
+}// namespace FredEmmott::Audio

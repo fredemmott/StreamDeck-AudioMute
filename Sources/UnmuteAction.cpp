@@ -6,9 +6,9 @@
 
 #include "UnmuteAction.h"
 
+#include <AudioDevices/AudioDevices.h>
 #include <StreamDeckSDK/ESDUtilities.h>
 
-#include <AudioDevices/AudioDevices.h>
 #include "PlayWavFile.h"
 
 const std::string UnmuteAction::ACTION_ID(

@@ -3,11 +3,10 @@
  * This source code is licensed under the MIT-style license found in the
  * LICENSE file.
  */
-#include "PlayWavFile.h"
-
-#include "Windows.h"
-
 #include <string>
+
+#include "PlayWavFile.h"
+#include "Windows.h"
 
 namespace FredEmmott::Audio {
 
@@ -25,11 +24,11 @@ std::wstring Utf8ToUtf16(const std::string& utf8) {
   return buf;
 }
 
-} // namespace
+}// namespace
 
 void PlayWavFile(const std::string& path) {
   const auto utf16 = Utf8ToUtf16(path);
-  PlaySound(utf16.c_str(), NULL, SND_ASYNC| SND_NODEFAULT);
+  PlaySound(utf16.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);
 }
 
-} // namespace FredEmmott::Audio
+}// namespace FredEmmott::Audio

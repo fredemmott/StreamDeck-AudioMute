@@ -13,6 +13,7 @@ class UnmuteAction final : public BaseMuteAction {
   static const std::string ACTION_ID;
 
   static void PlayFeedbackSound();
+
  protected:
   virtual void MuteStateDidChange(bool isMuted) override;
   virtual void WillAppear() override;

@@ -5,10 +5,10 @@
  */
 #pragma once
 
-#include "BaseMuteAction.h"
-
 #include <asio.hpp>
 #include <chrono>
+
+#include "BaseMuteAction.h"
 
 class ToggleMuteAction final : public BaseMuteAction {
  public:
@@ -19,11 +19,14 @@ class ToggleMuteAction final : public BaseMuteAction {
   virtual void KeyUp() override;
 
  protected:
-  virtual void SettingsDidChange(const MuteActionSettings& oldSettings, const MuteActionSettings& newSettings) override;
+  virtual void SettingsDidChange(
+    const MuteActionSettings& oldSettings,
+    const MuteActionSettings& newSettings) override;
 
   virtual void MuteStateDidChange(bool isMuted) override;
   virtual void WillAppear() override;
   virtual void DoAction() override;
+
  private:
   bool mPushAndHoldToTalk = false;
   std::chrono::steady_clock::time_point mKeyDownTime;

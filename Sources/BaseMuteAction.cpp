@@ -6,19 +6,18 @@
 
 #include "BaseMuteAction.h"
 
+#include <AudioDevices/AudioDevices.h>
 #include <StreamDeckSDK/EPLJSONUtils.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
-#include <AudioDevices/AudioDevices.h>
 #include "DefaultAudioDevices.h"
 
 using json = nlohmann::json;
 
 void from_json(const json& json, MuteActionSettings& settings) {
-  const auto default_id =
-    DefaultAudioDevices::GetRealDeviceID(
-      DefaultAudioDevices::COMMUNICATIONS_INPUT_ID
-    ).empty()
+  const auto default_id = DefaultAudioDevices::GetRealDeviceID(
+                            DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)
+                            .empty()
     ? DefaultAudioDevices::DEFAULT_INPUT_ID
     : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID;
   settings.deviceID = json.value<std::string>("deviceID", default_id);
@@ -46,11 +45,12 @@ void to_json(json& j, const AudioDeviceState& state) {
 }
 
 void to_json(json& j, const AudioDeviceInfo& device) {
-  j = json({{"id", device.id},
-            {"interfaceName", device.interfaceName},
-            {"endpointName", device.endpointName},
-            {"displayName", device.displayName},
-            {"state", device.state}});
+  j = json(
+    {{"id", device.id},
+     {"interfaceName", device.interfaceName},
+     {"endpointName", device.endpointName},
+     {"displayName", device.displayName},
+     {"state", device.state}});
 }
 }// namespace FredEmmott::Audio
 
@@ -67,23 +67,23 @@ void BaseMuteAction::SendToPlugin(const nlohmann::json& payload) {
   if (event != "getDeviceList") {
     return;
   }
-  SendToPropertyInspector(
-    json{{"event", event},
-         {"outputDevices", GetAudioDeviceList(AudioDeviceDirection::OUTPUT)},
-         {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
-         {"defaultDevices",
-          {{DefaultAudioDevices::DEFAULT_INPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(
-              DefaultAudioDevices::DEFAULT_INPUT_ID)},
-           {DefaultAudioDevices::DEFAULT_OUTPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(
-              DefaultAudioDevices::DEFAULT_OUTPUT_ID)},
-           {DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(
-              DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)},
-           {DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID,
-            DefaultAudioDevices::GetRealDeviceID(
-              DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID)}}}});
+  SendToPropertyInspector(json {
+    {"event", event},
+    {"outputDevices", GetAudioDeviceList(AudioDeviceDirection::OUTPUT)},
+    {"inputDevices", GetAudioDeviceList(AudioDeviceDirection::INPUT)},
+    {"defaultDevices",
+     {{DefaultAudioDevices::DEFAULT_INPUT_ID,
+       DefaultAudioDevices::GetRealDeviceID(
+         DefaultAudioDevices::DEFAULT_INPUT_ID)},
+      {DefaultAudioDevices::DEFAULT_OUTPUT_ID,
+       DefaultAudioDevices::GetRealDeviceID(
+         DefaultAudioDevices::DEFAULT_OUTPUT_ID)},
+      {DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
+       DefaultAudioDevices::GetRealDeviceID(
+         DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)},
+      {DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID,
+       DefaultAudioDevices::GetRealDeviceID(
+         DefaultAudioDevices::COMMUNICATIONS_OUTPUT_ID)}}}});
 }
 
 void BaseMuteAction::SettingsDidChange(
@@ -103,10 +103,11 @@ void BaseMuteAction::SettingsDidChange(
   // 'Default input device'
 
   ESDDebug("Registering default device change callback for {}", GetContext());
-  mDefaultChangeCallbackHandle = std::move(AddDefaultAudioDeviceChangeCallback(
-    [this](
-      AudioDeviceDirection direction, AudioDeviceRole role,
-      const std::string& device) {
+  mDefaultChangeCallbackHandle = std::move(
+    AddDefaultAudioDeviceChangeCallback([this](
+                                          AudioDeviceDirection direction,
+                                          AudioDeviceRole role,
+                                          const std::string& device) {
       ESDDebug("In default device change callback for {}", GetContext());
       if (
         DefaultAudioDevices::GetSpecialDeviceID(direction, role)
@@ -116,7 +117,8 @@ void BaseMuteAction::SettingsDidChange(
       }
       ESDLog(
         "Special device change: old device: '{}' - new device: '{}'",
-        mRealDeviceID, device);
+        mRealDeviceID,
+        device);
       if (device == mRealDeviceID) {
         ESDLog("Default default change for context {} didn't actually change");
         return;

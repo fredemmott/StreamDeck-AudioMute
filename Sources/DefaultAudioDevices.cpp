@@ -37,17 +37,27 @@ std::string DefaultAudioDevices::GetRealDeviceID(const std::string& dev) {
   return dev;
 }
 
-std::string DefaultAudioDevices::GetSpecialDeviceID(AudioDeviceDirection direction, AudioDeviceRole role) {
-  if (direction == AudioDeviceDirection::INPUT && role == AudioDeviceRole::DEFAULT) {
+std::string DefaultAudioDevices::GetSpecialDeviceID(
+  AudioDeviceDirection direction,
+  AudioDeviceRole role) {
+  if (
+    direction == AudioDeviceDirection::INPUT
+    && role == AudioDeviceRole::DEFAULT) {
     return DEFAULT_INPUT_ID;
   }
-  if (direction == AudioDeviceDirection::OUTPUT && role == AudioDeviceRole::DEFAULT) {
+  if (
+    direction == AudioDeviceDirection::OUTPUT
+    && role == AudioDeviceRole::DEFAULT) {
     return DEFAULT_OUTPUT_ID;
   }
-  if (direction == AudioDeviceDirection::INPUT && role == AudioDeviceRole::COMMUNICATION) {
+  if (
+    direction == AudioDeviceDirection::INPUT
+    && role == AudioDeviceRole::COMMUNICATION) {
     return COMMUNICATIONS_INPUT_ID;
   }
-  if (direction == AudioDeviceDirection::OUTPUT && role == AudioDeviceRole::COMMUNICATION) {
+  if (
+    direction == AudioDeviceDirection::OUTPUT
+    && role == AudioDeviceRole::COMMUNICATION) {
     return COMMUNICATIONS_OUTPUT_ID;
   }
   return std::string();

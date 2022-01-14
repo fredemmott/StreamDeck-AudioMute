@@ -5,6 +5,7 @@
  */
 
 #include <StreamDeckSDK/ESDMain.h>
+
 #include "AudioMuteStreamDeckPlugin.h"
 
 int main(int argc, const char** argv) {

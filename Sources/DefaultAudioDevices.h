@@ -7,6 +7,7 @@
 #pragma once
 
 #include <AudioDevices/AudioDevices.h>
+
 #include <string>
 
 using namespace FredEmmott::Audio;
