@@ -42,14 +42,6 @@ if(MSVC)
   )
 endif()
 
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(
-    CMAKE_INSTALL_PREFIX
-    "${STREAMDECK_PLUGIN_DIR}/${CMAKE_PROJECT_NAME}"
-    CACHE PATH "..." FORCE
-  )
-endif()
-
 include("AudioDeviceLib.cmake")
 include("StreamDeckSDK.cmake")
 
