@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
   StreamDeckSDK
   GIT_REPOSITORY https://github.com/fredemmott/StreamDeck-CPPSDK.git
-  GIT_TAG 84b1bd2b2fc25a8603acfa4672343d0734f44837
+  GIT_TAG 61dc7696f7da6cc73e374935a0b4cc6f9c529148
 )
 
 FetchContent_GetProperties(StreamDeckSDK)
