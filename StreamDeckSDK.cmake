@@ -1,31 +1,13 @@
-include(ExternalProject)
+include(FetchContent)
 
-ExternalProject_Add(
-  StreamDeckSDK_build
-  URL https://github.com/fredemmott/StreamDeck-CPPSDK/releases/download/v2.0.2/StreamDeckSDK-v2.0.2.zip
-  URL_HASH SHA512=df735047900947ac3ea0e9137368a5b270edf7d51156bd1a48ba4d753509a44a7e68bd1ea09e36a2dee95adb002210624e0f28ce833e7d7c4b9895e588e43c4f
-  CMAKE_ARGS
-    -DBUILD_LIB_ONLY=ON
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_MSVC_RUNTIME_LIBRARY=${CMAKE_MSVC_RUNTIME_LIBRARY}
-    -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-)
-
-ExternalProject_Get_Property(
-  StreamDeckSDK_build
-  INSTALL_DIR
-)
-add_library(StreamDeckSDK INTERFACE)
-add_dependencies(StreamDeckSDK StreamDeckSDK_build)
-target_link_libraries(
+FetchContent_Declare(
   StreamDeckSDK
-  INTERFACE
-  ${INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}StreamDeckSDK${CMAKE_STATIC_LIBRARY_SUFFIX}
-  "${INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}fmt$<$<CONFIG:Debug>:d>${CMAKE_STATIC_LIBRARY_SUFFIX}"
+  GIT_REPOSITORY https://github.com/fredemmott/StreamDeck-CPPSDK.git
+  GIT_TAG 84b1bd2b2fc25a8603acfa4672343d0734f44837
+  EXCLUDE_FROM_ALL
 )
-target_include_directories(StreamDeckSDK INTERFACE ${INSTALL_DIR}/include)
-target_compile_definitions(StreamDeckSDK INTERFACE -DASIO_STANDALONE=1)
+
+FetchContent_MakeAvailable(StreamDeckSDK)
 
 if(APPLE)
   set(

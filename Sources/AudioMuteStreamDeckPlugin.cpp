@@ -14,6 +14,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <objbase.h>
 
 #include "DefaultAudioDevices.h"
 #include "MuteAction.h"

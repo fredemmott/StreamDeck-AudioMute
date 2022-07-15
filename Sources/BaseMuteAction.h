@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <AudioDevices/AudioDevices.h>
 #include <StreamDeckSDK/ESDActionWithExternalState.h>
 
 struct MuteActionSettings {
@@ -19,11 +20,6 @@ struct MuteActionSettings {
   }
 };
 void from_json(const nlohmann::json& json, MuteActionSettings& settings);
-
-namespace FredEmmott::Audio {
-class DefaultChangeCallbackHandle;
-class MuteCallbackHandle;
-}// namespace FredEmmott::Audio
 
 using namespace FredEmmott::Audio;
 
@@ -49,8 +45,8 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
 
  private:
   std::string mRealDeviceID;
-  std::unique_ptr<MuteCallbackHandle> mMuteUnmuteCallbackHandle;
-  std::unique_ptr<DefaultChangeCallbackHandle> mDefaultChangeCallbackHandle;
+  MuteCallbackHandle mMuteUnmuteCallbackHandle;
+  DefaultChangeCallbackHandle mDefaultChangeCallbackHandle;
   bool mFeedbackSounds;
 
   void RealDeviceDidChange();

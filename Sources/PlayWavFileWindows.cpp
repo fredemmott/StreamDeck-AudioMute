@@ -6,7 +6,8 @@
 #include <string>
 
 #include "PlayWavFile.h"
-#include "Windows.h"
+#include <Windows.h>
+#include <Mmsystem.h>
 
 namespace FredEmmott::Audio {
 
@@ -28,7 +29,7 @@ std::wstring Utf8ToUtf16(const std::string& utf8) {
 
 void PlayWavFile(const std::string& path) {
   const auto utf16 = Utf8ToUtf16(path);
-  PlaySound(utf16.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);
+  PlaySoundW(utf16.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);
 }
 
 }// namespace FredEmmott::Audio
