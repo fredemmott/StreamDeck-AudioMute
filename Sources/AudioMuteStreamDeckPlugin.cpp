@@ -14,7 +14,10 @@
 
 #include <atomic>
 #include <mutex>
+
+#ifdef _MSC_VER
 #include <objbase.h>
+#endif
 
 #include "DefaultAudioDevices.h"
 #include "MuteAction.h"
