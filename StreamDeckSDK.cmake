@@ -4,10 +4,13 @@ FetchContent_Declare(
   StreamDeckSDK
   GIT_REPOSITORY https://github.com/fredemmott/StreamDeck-CPPSDK.git
   GIT_TAG 84b1bd2b2fc25a8603acfa4672343d0734f44837
-  EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(StreamDeckSDK)
+FetchContent_GetProperties(StreamDeckSDK)
+if(NOT streamdecksdk_POPULATED)
+  FetchContent_Populate(StreamDeckSDK)
+  add_subdirectory("${streamdecksdk_SOURCE_DIR}" "${streamdecksdk_BINARY_DIR}" EXCLUDE_FROM_ALL)
+endif()
 
 if(APPLE)
   set(
