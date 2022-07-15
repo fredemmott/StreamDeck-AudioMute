@@ -19,7 +19,10 @@ void MuteAction::MuteStateDidChange(bool isMuted) {
 void MuteAction::WillAppear() {
   try {
     MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
-  } catch (FredEmmott::Audio::device_error&) {
+    if (!IsDevicePresent()) {
+      ShowAlert();
+    }
+  } catch (const FredEmmott::Audio::device_error&) {
     ShowAlert();
   }
 }

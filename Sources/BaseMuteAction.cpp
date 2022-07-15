@@ -147,13 +147,17 @@ void BaseMuteAction::RealDeviceDidChange() {
   }
 }
 
+bool BaseMuteAction::IsDevicePresent() const {
+  return GetAudioDeviceState(GetRealDeviceID()) == AudioDeviceState::CONNECTED;
+}
+
 void BaseMuteAction::KeyUp() {
   try {
     DoAction();
-    if (GetAudioDeviceState(GetRealDeviceID()) != AudioDeviceState::CONNECTED) {
-      // This is actually fine on Windows, but show an alert anyway to make it clear
-      // that something weird happened - don't want the user to have a hot mic without
-      // realizing it
+    // This is actually fine on Windows, but show an alert anyway to make it clear
+    // that something weird happened - don't want the user to have a hot mic without
+    // realizing it
+    if (!IsDevicePresent()) {
       ESDDebug("Acted on a device that isn't present");
       ShowAlert();
     }

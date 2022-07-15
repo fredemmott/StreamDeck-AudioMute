@@ -42,6 +42,7 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
   virtual void KeyUp() override;
   std::string GetRealDeviceID() const;
   virtual bool FeedbackSoundsEnabled() const;
+  bool IsDevicePresent() const;
 
  private:
   std::string mRealDeviceID;

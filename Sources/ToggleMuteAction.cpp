@@ -24,6 +24,9 @@ void ToggleMuteAction::MuteStateDidChange(bool isMuted) {
 void ToggleMuteAction::WillAppear() {
   try {
     MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
+    if (!IsDevicePresent()) {
+      ShowAlert();
+    }
   } catch (FredEmmott::Audio::device_error&) {
     ShowAlert();
   }
