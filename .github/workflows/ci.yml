@@ -165,13 +165,3 @@ jobs:
         asset_path: ${{runner.temp}}/artifacts/RelWithDebInfo-StreamDeckPlugin/com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_name: com.fredemmott.micmutetoggle.streamDeckPlugin
         asset_content_type: application/octet-stream
-    - name: Attach Debug Build
-      if: steps.ref.outputs.is-release == 'true'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create-release.outputs.upload_url }}
-        asset_path: ${{runner.temp}}/artifacts/Debug-StreamDeckPlugin/com.fredemmott.micmutetoggle.streamDeckPlugin
-        asset_name: debug-com.fredemmott.micmutetoggle.streamDeckPlugin
-        asset_content_type: application/octet-stream
