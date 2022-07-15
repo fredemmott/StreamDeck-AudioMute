@@ -141,7 +141,8 @@ void BaseMuteAction::RealDeviceDidChange() {
     device, [this](bool isMuted) { this->MuteStateDidChange(isMuted); }));
   try {
     MuteStateDidChange(IsAudioDeviceMuted(device));
-  } catch (device_error) {
+  } catch (const device_error& e) {
+    ESDDebug("Error on real device change: {}", e.what());
     ShowAlert();
   }
 }
@@ -149,7 +150,8 @@ void BaseMuteAction::RealDeviceDidChange() {
 void BaseMuteAction::KeyUp() {
   try {
     DoAction();
-  } catch (FredEmmott::Audio::device_error e) {
+  } catch (const device_error& e) {
+    ESDDebug("Error on keyup: {}", e.what());
     ShowAlert();
   }
 }
