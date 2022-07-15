@@ -96,12 +96,34 @@ void BaseMuteAction::SettingsDidChange(
   mRealDeviceID = DefaultAudioDevices::GetRealDeviceID(new_settings.deviceID);
   RealDeviceDidChange();
   if (mRealDeviceID == new_settings.deviceID) {
+    mDefaultChangeCallbackHandle = {};
+    ESDDebug("Registering plugevent callback");
+    mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback([this](
+      auto event, const auto& deviceID) {
+        ESDLog("Received plug event {} for device {}", static_cast<int>(event), deviceID);
+        if (deviceID != mRealDeviceID) {
+          ESDLog("Device is not a match");
+          return;
+        }
+        switch(event) {
+          case AudioDevicePlugEvent::ADDED:
+            ESDLog("Matching device added");
+            ShowOK();
+            return;
+          case AudioDevicePlugEvent::REMOVED:
+            ESDLog("Matching device removed");
+            ShowAlert();
+            return;
+        }
+      });
+
     return;
   }
 
   // Differing real device ID means we have a place holder device, e.g.
   // 'Default input device'
 
+  mPlugEventCallbackHandle = {};
   ESDDebug("Registering default device change callback for {}", GetContext());
   mDefaultChangeCallbackHandle = std::move(
     AddDefaultAudioDeviceChangeCallback([this](

@@ -48,6 +48,7 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
   std::string mRealDeviceID;
   MuteCallbackHandle mMuteUnmuteCallbackHandle;
   DefaultChangeCallbackHandle mDefaultChangeCallbackHandle;
+  AudioDevicePlugEventCallbackHandle mPlugEventCallbackHandle;
   bool mFeedbackSounds;
 
   void RealDeviceDidChange();
