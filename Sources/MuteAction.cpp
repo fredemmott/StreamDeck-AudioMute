@@ -38,6 +38,6 @@ void MuteAction::DoAction() {
 }
 
 void MuteAction::PlayFeedbackSound() {
-  FredEmmott::Audio::PlayWavFile(ESDUtilities::AddPathComponent(
-    ESDUtilities::GetPluginDirectoryPath(), "mute.wav"));
+  FredEmmott::Audio::PlayWavFile(
+    ESDUtilities::GetPluginDirectoryPath() / "mute.wav");
 }

@@ -5,10 +5,10 @@
  */
 #pragma once
 
-#include <string>
+#include <filesystem>
 
 namespace FredEmmott::Audio {
 
-void PlayWavFile(const std::string& path);
+void PlayWavFile(const std::filesystem::path& path);
 
 }

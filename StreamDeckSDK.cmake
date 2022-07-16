@@ -2,8 +2,8 @@ include(FetchContent)
 
 FetchContent_Declare(
   StreamDeckSDK
-  GIT_REPOSITORY https://github.com/fredemmott/StreamDeck-CPPSDK.git
-  GIT_TAG 61dc7696f7da6cc73e374935a0b4cc6f9c529148
+  GIT_REPOSITORY https://github.com/fredemmott/StreamDeck-CPPSDK
+  GIT_TAG 38d3543f40c561c919afe2555be2b6fa7365388f
 )
 
 FetchContent_GetProperties(StreamDeckSDK)
@@ -25,8 +25,6 @@ elseif(WIN32)
     STREAMDECK_PLUGIN_DIR
     "$ENV{appdata}/Elgato/StreamDeck/Plugins"
   )
-elseif(UNIX AND NOT APPLE)
-  target_link_libraries(StreamDeckSDK INTERFACE pthread)
 endif()
 
 set(

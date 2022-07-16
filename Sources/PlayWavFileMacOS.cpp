@@ -13,7 +13,7 @@
 
 namespace FredEmmott::Audio {
 
-void PlayWavFile(const std::string& path) {
+void PlayWavFile(const std::filesystem::path& path) {
   static std::map<std::string, SystemSoundID> ids;
   const auto it = ids.find(path);
   if (it == ids.end()) {

@@ -41,6 +41,6 @@ void UnmuteAction::DoAction() {
 }
 
 void UnmuteAction::PlayFeedbackSound() {
-  FredEmmott::Audio::PlayWavFile(ESDUtilities::AddPathComponent(
-    ESDUtilities::GetPluginDirectoryPath(), "unmute.wav"));
+  FredEmmott::Audio::PlayWavFile(
+    ESDUtilities::GetPluginDirectoryPath() / "unmute.wav");
 }
