@@ -36,19 +36,19 @@ jobs:
         working-directory: build
         run: cmake --install . --config ${{matrix.build-type}}
       - name: Upload MacOS Executable
-        if: matrix.os == 'macos'
+        if: matrix.os == 'macos' && matrix.build-type != 'Debug'
         uses: actions/upload-artifact@v2
         with:
           name: MacOS-${{matrix.arch}}-${{matrix.build-type}}
           path: build/Sources/sdmicmute
       - name: Upload Windows Executable
-        if: matrix.os == 'windows'
+        if: matrix.os == 'windows' && matrix.build-type != 'Debug'
         uses: actions/upload-artifact@v2
         with:
           name: Windows-${{matrix.build-type}}
           path: build/Sources/${{matrix.build-type}}/sdmicmute.exe
       - name: Upload Windows Debug Symbols
-        if: matrix.os == 'windows' && matrix.build_type != 'Release'
+        if: matrix.os == 'windows' && matrix.build-type != 'Release' && matrix.build-type != 'Debug'
         uses: actions/upload-artifact@v2
         with:
           name: DebugSymbols-${{matrix.os}}-${{matrix.build-type}}
@@ -119,7 +119,7 @@ jobs:
           path: com.fredemmott.micmutetoggle.streamDeckPlugin
     strategy:
       matrix:
-        build-type: [RelWithDebInfo, Debug]
+        build-type: [RelWithDebInfo]
   release:
     needs: [streamDeckPlugin]
     runs-on: ubuntu-latest
