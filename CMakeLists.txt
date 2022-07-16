@@ -26,7 +26,6 @@ set(CMAKE_CXX_EXTENSIONS false)
 
 if(WIN32)
   add_compile_definitions(
-    sdmicmute
     "UNICODE=1"
     "_UNICODE=1"
     "WIN32_LEAN_AND_MEAN=1"
