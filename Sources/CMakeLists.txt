@@ -10,11 +10,19 @@ set(
 )
 
 if(WIN32)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.rc"
+    @ONLY
+  )
+
   list(
     APPEND SOURCES
     PlayWavFileWindows.cpp
+    "${CMAKE_CURRENT_BINARY_DIR}/version.rc"
   )
 endif()
+
 if(APPLE)
   list(
     APPEND SOURCES
@@ -28,6 +36,7 @@ add_executable(
 )
 
 target_link_libraries(sdmicmute StreamDeckSDK AudioDeviceLib)
+
 if(APPLE)
   find_library(AUDIOTOOLBOX_FRAMEWORK AudioToolbox)
   target_link_libraries(
@@ -37,7 +46,6 @@ if(APPLE)
 elseif(WIN32)
   target_link_libraries(sdmicmute Winmm)
 endif()
-
 
 target_compile_definitions(sdmicmute PRIVATE -DHAVE_FEEDBACK_SOUNDS=1)
 install(TARGETS sdmicmute DESTINATION ${CMAKE_INSTALL_PREFIX})

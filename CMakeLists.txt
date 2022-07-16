@@ -3,11 +3,20 @@ cmake_minimum_required(VERSION 3.15)
 # CMAKE_MSVC_RUNTIME_POLICY support
 cmake_policy(SET CMP0091 NEW)
 
+if(DEFINED ENV{GITHUB_RUN_NUMBER})
+  set(DEFAULT_VERSION_BUILD $ENV{GITHUB_RUN_NUMBER})
+else()
+  set(DEFAULT_VERSION_BUILD 0)
+endif()
+
+set(VERSION_BUILD "${DEFAULT_VERSION_BUILD}" CACHE STRING "patch component of version number")
+
 project(
   com.fredemmott.micmutetoggle.sdPlugin
-  VERSION 3.1.0
+  VERSION 3.1.0.${VERSION_BUILD}
   LANGUAGES CXX
 )
+message(STATUS "Configuring v${CMAKE_PROJECT_VERSION}")
 
 if(MSVC)
   # Statically link the MSVC runtime
