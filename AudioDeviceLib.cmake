@@ -2,8 +2,8 @@ include(FetchContent)
 
 FetchContent_Declare(
   AudioDeviceLib
-  GIT_REPOSITORY https://github.com/fredemmott/AudioDeviceLib.git
-  GIT_TAG f9bb22d13ef27b9123b35fd45a6461934550776b
+  URL https://github.com/fredemmott/AudioDeviceLib/releases/download/v2.0.0/AudioDeviceLib-v2.0.0.zip
+  URL_HASH SHA512=10ac9f13c4238d8407fffa44b310cb049090251b6acb5170b38a4122926fd5b209aab7c7528a23497d409c17c770037b15bd00953b223e2c3b7403dd6583a495
 )
 
 FetchContent_GetProperties(AudioDeviceLib)
