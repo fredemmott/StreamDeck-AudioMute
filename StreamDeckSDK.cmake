@@ -15,7 +15,7 @@ endif()
 if(APPLE)
   set(
     STREAMDECK_PLUGIN_DIR
-    "$ENV{HOME}/Library/ApplicationSupport/com.elgato.StreamDeck/Plugins"
+    "$ENV{HOME}/Library/Application Support/com.elgato.StreamDeck/Plugins"
   )
 elseif(WIN32)
   string(
