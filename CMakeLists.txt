@@ -1,22 +1,24 @@
 cmake_minimum_required(VERSION 3.15)
 
-if(MSVC)
-  # CMAKE_MSVC_RUNTIME_POLICY support
-  cmake_policy(SET CMP0091 NEW)
-  # Statically link the MSVC runtime
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  # ... but dynamically link the UCRT - the ABI-stable part
-  add_link_options(
-    "/DEFAULTLIB:ucrt$<$<CONFIG:Debug>:d>.lib"
-    "/NODEFAULTLIB:libucrt$<$<CONFIG:Debug>:d>.lib"
-  )
-endif()
+# CMAKE_MSVC_RUNTIME_POLICY support
+cmake_policy(SET CMP0091 NEW)
 
 project(
   com.fredemmott.micmutetoggle.sdPlugin
   VERSION 3.1.0
   LANGUAGES CXX
 )
+
+if(MSVC)
+  # Statically link the MSVC runtime
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+  # ... but dynamically link the UCRT - the ABI-stable part
+  add_link_options(
+    "/DEFAULTLIB:ucrt$<$<CONFIG:Debug>:d>.lib"
+    "/NODEFAULTLIB:libucrt$<$<CONFIG:Debug>:d>.lib"
+  )
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
@@ -48,7 +50,6 @@ include("StreamDeckSDK.cmake")
 set_default_install_dir_to_streamdeck_plugin_dir()
 
 include_directories("${CMAKE_SOURCE_DIR}")
-
 
 include(sign_target.cmake)
 add_subdirectory(Sources)
