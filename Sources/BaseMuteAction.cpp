@@ -108,6 +108,9 @@ void BaseMuteAction::SettingsDidChange(
         switch(event) {
           case AudioDevicePlugEvent::ADDED:
             ESDLog("Matching device added");
+            // Windows will now preserve/enforce the state if changed while the device is
+            // unplugged, but MacOS won't, so we need to update the displayed state to match reality
+            this->MuteStateDidChange(IsAudioDeviceMuted(mRealDeviceID));
             ShowOK();
             return;
           case AudioDevicePlugEvent::REMOVED:
