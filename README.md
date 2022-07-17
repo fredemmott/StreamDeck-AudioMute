@@ -17,7 +17,7 @@ I make this for my own use, and I share this in the hope others find it useful; 
 If you have found a bug, first check [the troubleshooting guide](TROUBLESHOOTING.md) guide; if that doesn't resolve the issue or you have a feature request, please check [GitHub issues](https://github.com/fredemmott/StreamDeck-AudioMute/issues) to see if it has already been reported, and [create a new issue](https://github.com/fredemmott/StreamDeck-AudioMute/issues/new) if not.
 
 Support may be available from the community via:
-* [GitHub Discussions](https://github.com/fredemmott/StreamDeck-CPPSDK/discussions)
+* [GitHub Discussions](https://github.com/fredemmott/StreamDeck-AudioMute/discussions)
 * [Discord](https://discord.gg/CWrvKfuff3)
 
 I am not able to respond to 1:1 requests for help via any means, including GitHub, Discord, Twitter, Reddit, or email.
