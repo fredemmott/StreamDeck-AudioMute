@@ -10,6 +10,8 @@
 #include <StreamDeckSDK/EPLJSONUtils.h>
 #include <StreamDeckSDK/ESDLogger.h>
 
+#include <functional>
+
 #include "DefaultAudioDevices.h"
 #include "audio_json.h"
 
@@ -71,31 +73,7 @@ void BaseMuteAction::SettingsDidChange(
     mDefaultChangeCallbackHandle = {};
     ESDDebug("Registering plugevent callback");
     mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback(
-      [this](auto event, const auto& deviceID) {
-        ESDLog(
-          "Received plug event {} for device {}",
-          static_cast<int>(event),
-          deviceID);
-        if (deviceID != mRealDeviceID) {
-          ESDLog("Device is not a match");
-          return;
-        }
-        switch (event) {
-          case AudioDevicePlugEvent::ADDED:
-            ESDLog("Matching device added");
-            // Windows will now preserve/enforce the state if changed while the
-            // device is unplugged, but MacOS won't, so we need to update the
-            // displayed state to match reality
-            this->MuteStateDidChange(IsAudioDeviceMuted(mRealDeviceID));
-            ShowOK();
-            return;
-          case AudioDevicePlugEvent::REMOVED:
-            ESDLog("Matching device removed");
-            ShowAlert();
-            return;
-        }
-      });
-
+      std::bind_front(&BaseMuteAction::OnPlugEvent, this));
     return;
   }
 
@@ -104,32 +82,58 @@ void BaseMuteAction::SettingsDidChange(
 
   mPlugEventCallbackHandle = {};
   ESDDebug("Registering default device change callback for {}", GetContext());
-  mDefaultChangeCallbackHandle = std::move(
-    AddDefaultAudioDeviceChangeCallback([this](
-                                          AudioDeviceDirection direction,
-                                          AudioDeviceRole role,
-                                          const std::string& device) {
-      ESDDebug("In default device change callback for {}", GetContext());
-      if (
-        DefaultAudioDevices::GetSpecialDeviceID(direction, role)
-        != GetSettings().deviceID) {
-        ESDDebug("Not this device");
-        return;
-      }
-      ESDLog(
-        "Special device change: old device: '{}' - new device: '{}'",
-        mRealDeviceID,
-        device);
-      if (device == mRealDeviceID) {
-        ESDLog("Default default change for context {} didn't actually change");
-        return;
-      }
-      mRealDeviceID = device;
-      ESDLog(
-        "Invoking RealDeviceDidChange from callback for context {}",
-        GetContext());
-      RealDeviceDidChange();
-    }));
+  mDefaultChangeCallbackHandle = AddDefaultAudioDeviceChangeCallback(
+    std::bind_front(&BaseMuteAction::OnDefaultDeviceChange, this));
+}
+
+void BaseMuteAction::OnPlugEvent(
+  AudioDevicePlugEvent event,
+  const std::string& deviceID) {
+  ESDLog(
+    "Received plug event {} for device {}", static_cast<int>(event), deviceID);
+  if (deviceID != mRealDeviceID) {
+    ESDLog("Device is not a match");
+    return;
+  }
+  switch (event) {
+    case AudioDevicePlugEvent::ADDED:
+      ESDLog("Matching device added");
+      // Windows will now preserve/enforce the state if changed while the
+      // device is unplugged, but MacOS won't, so we need to update the
+      // displayed state to match reality
+      this->MuteStateDidChange(IsAudioDeviceMuted(mRealDeviceID));
+      ShowOK();
+      return;
+    case AudioDevicePlugEvent::REMOVED:
+      ESDLog("Matching device removed");
+      ShowAlert();
+      return;
+  }
+}
+
+void BaseMuteAction::OnDefaultDeviceChange(
+  AudioDeviceDirection direction,
+  AudioDeviceRole role,
+  const std::string& device) {
+  ESDDebug("In default device change callback for {}", GetContext());
+  if (
+    DefaultAudioDevices::GetSpecialDeviceID(direction, role)
+    != GetSettings().deviceID) {
+    ESDDebug("Not this device");
+    return;
+  }
+  ESDLog(
+    "Special device change: old device: '{}' - new device: '{}'",
+    mRealDeviceID,
+    device);
+  if (device == mRealDeviceID) {
+    ESDLog("Default default change for context {} didn't actually change");
+    return;
+  }
+  mRealDeviceID = device;
+  ESDLog(
+    "Invoking RealDeviceDidChange from callback for context {}", GetContext());
+  RealDeviceDidChange();
 }
 
 bool BaseMuteAction::FeedbackSoundsEnabled() const {
