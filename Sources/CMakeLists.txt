@@ -1,5 +1,6 @@
 set(
   SOURCES
+  audio_json.cpp
   BaseMuteAction.cpp
   DefaultAudioDevices.cpp
   MuteAction.cpp

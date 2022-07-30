@@ -11,6 +11,7 @@
 #include <StreamDeckSDK/ESDLogger.h>
 
 #include "DefaultAudioDevices.h"
+#include "audio_json.h"
 
 using json = nlohmann::json;
 
@@ -24,35 +25,6 @@ void from_json(const json& json, MuteActionSettings& settings) {
   settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
   settings.ptt = json.value<bool>("ptt", false);
 }
-
-namespace FredEmmott::Audio {
-
-void to_json(json& j, const AudioDeviceState& state) {
-  switch (state) {
-    case AudioDeviceState::CONNECTED:
-      j = "connected";
-      return;
-    case AudioDeviceState::DEVICE_NOT_PRESENT:
-      j = "device_not_present";
-      return;
-    case AudioDeviceState::DEVICE_DISABLED:
-      j = "device_disabled";
-      return;
-    case AudioDeviceState::DEVICE_PRESENT_NO_CONNECTION:
-      j = "device_present_no_connection";
-      return;
-  }
-}
-
-void to_json(json& j, const AudioDeviceInfo& device) {
-  j = json(
-    {{"id", device.id},
-     {"interfaceName", device.interfaceName},
-     {"endpointName", device.endpointName},
-     {"displayName", device.displayName},
-     {"state", device.state}});
-}
-}// namespace FredEmmott::Audio
 
 BaseMuteAction::~BaseMuteAction() {
 }
@@ -98,18 +70,22 @@ void BaseMuteAction::SettingsDidChange(
   if (mRealDeviceID == new_settings.deviceID) {
     mDefaultChangeCallbackHandle = {};
     ESDDebug("Registering plugevent callback");
-    mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback([this](
-      auto event, const auto& deviceID) {
-        ESDLog("Received plug event {} for device {}", static_cast<int>(event), deviceID);
+    mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback(
+      [this](auto event, const auto& deviceID) {
+        ESDLog(
+          "Received plug event {} for device {}",
+          static_cast<int>(event),
+          deviceID);
         if (deviceID != mRealDeviceID) {
           ESDLog("Device is not a match");
           return;
         }
-        switch(event) {
+        switch (event) {
           case AudioDevicePlugEvent::ADDED:
             ESDLog("Matching device added");
-            // Windows will now preserve/enforce the state if changed while the device is
-            // unplugged, but MacOS won't, so we need to update the displayed state to match reality
+            // Windows will now preserve/enforce the state if changed while the
+            // device is unplugged, but MacOS won't, so we need to update the
+            // displayed state to match reality
             this->MuteStateDidChange(IsAudioDeviceMuted(mRealDeviceID));
             ShowOK();
             return;
@@ -179,9 +155,9 @@ bool BaseMuteAction::IsDevicePresent() const {
 void BaseMuteAction::KeyUp() {
   try {
     DoAction();
-    // This is actually fine on Windows, but show an alert anyway to make it clear
-    // that something weird happened - don't want the user to have a hot mic without
-    // realizing it
+    // This is actually fine on Windows, but show an alert anyway to make it
+    // clear that something weird happened - don't want the user to have a hot
+    // mic without realizing it
     if (!IsDevicePresent()) {
       ESDDebug("Acted on a device that isn't present");
       ShowAlert();
