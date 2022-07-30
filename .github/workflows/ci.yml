@@ -3,7 +3,7 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build ${{matrix.os}}/${{matrix.arch}}/${{matrix.build-type}}
-    runs-on: ${{matrix.os}}-latest
+    runs-on: ${{matrix.os}}-${{matrix.os_version}}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -61,12 +61,15 @@ jobs:
           - target: windows
             os: windows
             arch: x86_64
+            os_version: latest
           - target: macos-arm64
             os: macos
             arch: arm64
+            os_version: 12 # 'latest' is current 11, need better C++20 support
           - target: macos-x86_64
             os: macos
             arch: x86_64
+            os_version: 12
   streamDeckPlugin:
     name: streamDeckPlugin/${{matrix.build-type}}
     needs: [build]
