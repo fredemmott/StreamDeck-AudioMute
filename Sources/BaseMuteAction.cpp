@@ -18,14 +18,25 @@
 using json = nlohmann::json;
 
 void from_json(const json& json, MuteActionSettings& settings) {
-  const auto default_id = DefaultAudioDevices::GetRealDeviceID(
-                            DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)
-                            .empty()
-    ? DefaultAudioDevices::DEFAULT_INPUT_ID
-    : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID;
-  settings.deviceID = json.value<std::string>("deviceID", default_id);
+  if (json.contains("device")) {
+    settings.device = json.at("device");
+  } else if (json.contains("deviceID")) {
+    settings.device = {.id = json.at("deviceID")};
+  } else {
+    settings.device = {
+      .id = DefaultAudioDevices::GetRealDeviceID(
+              DefaultAudioDevices::COMMUNICATIONS_INPUT_ID)
+              .empty()
+        ? DefaultAudioDevices::DEFAULT_INPUT_ID
+        : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
+    };
+  }
   settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
   settings.ptt = json.value<bool>("ptt", false);
+}
+
+std::string MuteActionSettings::VolatileDeviceID() const {
+  return device.id;
 }
 
 BaseMuteAction::~BaseMuteAction() {
@@ -64,12 +75,12 @@ void BaseMuteAction::SettingsDidChange(
   const MuteActionSettings& old_settings,
   const MuteActionSettings& new_settings) {
   mFeedbackSounds = new_settings.feedbackSounds;
-  if (old_settings.deviceID == new_settings.deviceID) {
+  if (old_settings.device == new_settings.device) {
     return;
   }
-  mRealDeviceID = DefaultAudioDevices::GetRealDeviceID(new_settings.deviceID);
+  mRealDeviceID = DefaultAudioDevices::GetRealDeviceID(new_settings.device.id);
   RealDeviceDidChange();
-  if (mRealDeviceID == new_settings.deviceID) {
+  if (mRealDeviceID == new_settings.device.id) {
     mDefaultChangeCallbackHandle = {};
     ESDDebug("Registering plugevent callback");
     mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback(
@@ -118,7 +129,7 @@ void BaseMuteAction::OnDefaultDeviceChange(
   ESDDebug("In default device change callback for {}", GetContext());
   if (
     DefaultAudioDevices::GetSpecialDeviceID(direction, role)
-    != GetSettings().deviceID) {
+    != GetSettings().device.id) {
     ESDDebug("Not this device");
     return;
   }

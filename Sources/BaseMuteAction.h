@@ -9,19 +9,17 @@
 #include <AudioDevices/AudioDevices.h>
 #include <StreamDeckSDK/ESDActionWithExternalState.h>
 
+using namespace FredEmmott::Audio;
+
 struct MuteActionSettings {
-  std::string deviceID;
+  AudioDeviceInfo device;
   bool feedbackSounds = true;
   bool ptt = false;
 
-  bool operator==(const MuteActionSettings& other) const {
-    return deviceID == other.deviceID && feedbackSounds == other.feedbackSounds
-      && ptt == other.ptt;
-  }
+  auto operator<=>(const MuteActionSettings&) const = default;
+  std::string VolatileDeviceID() const;
 };
 void from_json(const nlohmann::json& json, MuteActionSettings& settings);
-
-using namespace FredEmmott::Audio;
 
 class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
  public:
