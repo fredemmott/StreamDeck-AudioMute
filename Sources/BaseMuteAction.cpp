@@ -17,11 +17,26 @@
 
 using json = nlohmann::json;
 
+NLOHMANN_JSON_SERIALIZE_ENUM(
+  DeviceMatchStrategy,
+  {
+    {DeviceMatchStrategy::ID, "ID"},
+    {DeviceMatchStrategy::Fuzzy, "Fuzzy"},
+    {DeviceMatchStrategy::Special, "Special"},
+  });
+
 void from_json(const json& json, MuteActionSettings& settings) {
   if (json.contains("device")) {
     settings.device = json.at("device");
+    settings.matchStrategy = json.at("matchStrategy");
   } else if (json.contains("deviceID")) {
-    settings.device = {.id = json.at("deviceID")};
+    const auto id = json.at("deviceID").get<std::string>();
+    settings.device = {.id = id};
+    if (DefaultAudioDevices::GetRealDeviceID(id) == id) {
+      settings.matchStrategy = DeviceMatchStrategy::ID;
+    } else {
+      settings.matchStrategy = DeviceMatchStrategy::Special;
+    }
   } else {
     settings.device = {
       .id = DefaultAudioDevices::GetRealDeviceID(
@@ -30,7 +45,9 @@ void from_json(const json& json, MuteActionSettings& settings) {
         ? DefaultAudioDevices::DEFAULT_INPUT_ID
         : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
     };
-  }
+    settings.matchStrategy = DeviceMatchStrategy::Special;
+  };
+
   settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
   settings.ptt = json.value<bool>("ptt", false);
 }

@@ -11,8 +11,15 @@
 
 using namespace FredEmmott::Audio;
 
+enum class DeviceMatchStrategy {
+  ID,
+  Fuzzy,
+  Special,
+};
+
 struct MuteActionSettings {
   AudioDeviceInfo device;
+  DeviceMatchStrategy matchStrategy = DeviceMatchStrategy::ID;
   bool feedbackSounds = true;
   bool ptt = false;
 
