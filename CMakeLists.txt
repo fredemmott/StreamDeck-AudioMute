@@ -28,6 +28,7 @@ if(MSVC)
     "/NODEFAULTLIB:libucrt$<$<CONFIG:Debug>:d>.lib"
   )
 endif()
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
