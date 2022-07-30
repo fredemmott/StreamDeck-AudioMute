@@ -53,14 +53,35 @@ void from_json(const json& json, MuteActionSettings& settings) {
 }
 
 std::string MuteActionSettings::VolatileDeviceID() const {
+  if (matchStrategy == DeviceMatchStrategy::Special) {
+    return DefaultAudioDevices::GetRealDeviceID(device.id);
+  }
+
+  if (matchStrategy == DeviceMatchStrategy::ID) {
+    return device.id;
+  }
+
+  if (GetAudioDeviceState(device.id) == AudioDeviceState::CONNECTED) {
+    return device.id;
+  }
+
+  for (const auto& [otherID, other]: GetAudioDeviceList(device.direction)) {
+    if (
+      device.interfaceName == other.interfaceName
+      && device.endpointName == other.endpointName) {
+      ESDDebug(
+        "Fuzzy device match for {}/{}",
+        device.interfaceName,
+        device.endpointName);
+      return otherID;
+    }
+  }
+  ESDLog(
+    "Failed fuzzy match for {}/{}", device.interfaceName, device.endpointName);
   return device.id;
 }
 
 BaseMuteAction::~BaseMuteAction() {
-}
-
-std::string BaseMuteAction::GetRealDeviceID() const {
-  return mRealDeviceID;
 }
 
 void BaseMuteAction::SendToPlugin(const nlohmann::json& payload) {
@@ -95,9 +116,8 @@ void BaseMuteAction::SettingsDidChange(
   if (old_settings.device == new_settings.device) {
     return;
   }
-  mRealDeviceID = DefaultAudioDevices::GetRealDeviceID(new_settings.device.id);
   RealDeviceDidChange();
-  if (mRealDeviceID == new_settings.device.id) {
+  if (new_settings.matchStrategy == DeviceMatchStrategy::ID) {
     mDefaultChangeCallbackHandle = {};
     ESDDebug("Registering plugevent callback");
     mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback(
@@ -119,17 +139,18 @@ void BaseMuteAction::OnPlugEvent(
   const std::string& deviceID) {
   ESDLog(
     "Received plug event {} for device {}", static_cast<int>(event), deviceID);
-  if (deviceID != mRealDeviceID) {
+  if (deviceID != GetSettings().device.id) {
     ESDLog("Device is not a match");
     return;
   }
+
   switch (event) {
     case AudioDevicePlugEvent::ADDED:
       ESDLog("Matching device added");
       // Windows will now preserve/enforce the state if changed while the
       // device is unplugged, but MacOS won't, so we need to update the
       // displayed state to match reality
-      this->MuteStateDidChange(IsAudioDeviceMuted(mRealDeviceID));
+      this->MuteStateDidChange(IsAudioDeviceMuted(deviceID));
       ShowOK();
       return;
     case AudioDevicePlugEvent::REMOVED:
@@ -142,23 +163,24 @@ void BaseMuteAction::OnPlugEvent(
 void BaseMuteAction::OnDefaultDeviceChange(
   AudioDeviceDirection direction,
   AudioDeviceRole role,
-  const std::string& device) {
+  const std::string& newDevice) {
   ESDDebug("In default device change callback for {}", GetContext());
   if (
-    DefaultAudioDevices::GetSpecialDeviceID(direction, role)
-    != GetSettings().device.id) {
+    GetSettings().device.id
+    != DefaultAudioDevices::GetSpecialDeviceID(direction, role)) {
     ESDDebug("Not this device");
     return;
   }
+
+  const auto oldDevice = GetRealDeviceID();
   ESDLog(
     "Special device change: old device: '{}' - new device: '{}'",
-    mRealDeviceID,
-    device);
-  if (device == mRealDeviceID) {
+    oldDevice,
+    newDevice);
+  if (oldDevice == newDevice) {
     ESDLog("Default default change for context {} didn't actually change");
     return;
   }
-  mRealDeviceID = device;
   ESDLog(
     "Invoking RealDeviceDidChange from callback for context {}", GetContext());
   RealDeviceDidChange();
@@ -169,9 +191,14 @@ bool BaseMuteAction::FeedbackSoundsEnabled() const {
 }
 
 void BaseMuteAction::RealDeviceDidChange() {
-  const auto device(GetRealDeviceID());
-  mMuteUnmuteCallbackHandle = std::move(AddAudioDeviceMuteUnmuteCallback(
-    device, [this](bool isMuted) { this->MuteStateDidChange(isMuted); }));
+  const auto device = GetRealDeviceID();
+  mMuteUnmuteCallbackHandle = AddAudioDeviceMuteUnmuteCallback(
+    device, std::bind_front(&BaseMuteAction::OnMuteStateChanged, this, device));
+}
+
+void BaseMuteAction::OnMuteStateChanged(
+  const std::string& device,
+  bool isMuted) {
   try {
     MuteStateDidChange(IsAudioDeviceMuted(device));
   } catch (const device_error& e) {
@@ -198,4 +225,8 @@ void BaseMuteAction::KeyUp() {
     ESDDebug("Error on keyup: {}", e.what());
     ShowAlert();
   }
+}
+
+std::string BaseMuteAction::GetRealDeviceID() const {
+  return GetSettings().VolatileDeviceID();
 }

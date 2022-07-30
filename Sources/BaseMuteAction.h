@@ -50,7 +50,6 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
   bool IsDevicePresent() const;
 
  private:
-  std::string mRealDeviceID;
   MuteCallbackHandle mMuteUnmuteCallbackHandle;
   DefaultChangeCallbackHandle mDefaultChangeCallbackHandle;
   AudioDevicePlugEventCallbackHandle mPlugEventCallbackHandle;
@@ -62,4 +61,5 @@ class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
     AudioDeviceDirection direction,
     AudioDeviceRole role,
     const std::string& device);
+  void OnMuteStateChanged(const std::string& device, bool isMuted);
 };
