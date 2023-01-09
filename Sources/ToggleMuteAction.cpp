@@ -22,25 +22,39 @@ void ToggleMuteAction::MuteStateDidChange(bool isMuted) {
 }
 
 void ToggleMuteAction::WillAppear() {
-  try {
-    MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
-    if (!IsDevicePresent()) {
-      ShowAlert();
-    }
-  } catch (FredEmmott::Audio::device_error&) {
+  auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
+  if (!muteState) {
     ShowAlert();
+    return;
   }
+
+  MuteStateDidChange(*muteState);
 }
 
 void ToggleMuteAction::DoAction() {
   const auto device(GetRealDeviceID());
-  if (IsAudioDeviceMuted(device)) {
-    UnmuteAudioDevice(device);
+
+  const auto muteState = IsAudioDeviceMuted(device);
+  if (!muteState) {
+    ShowAlert();
+    return;
+  }
+
+  const auto muted = *muteState;
+
+  if (muted) {
+    if (!UnmuteAudioDevice(device)) {
+      ShowAlert();
+      return;
+    }
     if (FeedbackSoundsEnabled()) {
       UnmuteAction::PlayFeedbackSound();
     }
   } else {
-    MuteAudioDevice(device);
+    if (!MuteAudioDevice(device)) {
+      ShowAlert();
+      return;
+    }
     if (FeedbackSoundsEnabled()) {
       MuteAction::PlayFeedbackSound();
     }
@@ -49,7 +63,12 @@ void ToggleMuteAction::DoAction() {
 
 void ToggleMuteAction::KeyUp() {
   if (mPushAndHoldToTalk) {
-    const bool muted = IsAudioDeviceMuted(GetRealDeviceID());
+    const auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
+    if (!muteState) {
+      ShowAlert();
+      return;
+    }
+    const auto muted = *muteState;
     if (
       std::chrono::steady_clock::now() - mKeyDownTime
       < std::chrono::milliseconds(500)) {

@@ -19,22 +19,34 @@ void UnmuteAction::MuteStateDidChange(bool isMuted) {
 }
 
 void UnmuteAction::WillAppear() {
-  try {
-    MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
-    if (!IsDevicePresent()) {
-      ShowAlert();
-    }
-  } catch (FredEmmott::Audio::device_error&) {
+  const auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
+  if (!muteState) {
     ShowAlert();
+    return;
   }
+
+  MuteStateDidChange(*muteState);
 }
 
 void UnmuteAction::DoAction() {
   const auto device(GetRealDeviceID());
-  if (!IsAudioDeviceMuted(device)) {
+  const auto muteState = IsAudioDeviceMuted(device);
+  if (!muteState) {
+    ShowAlert();
     return;
   }
-  UnmuteAudioDevice(device);
+
+  const auto muted = *muteState;
+
+  if (!muted) {
+    return;
+  }
+
+  if (!UnmuteAudioDevice(device)) {
+    ShowAlert();
+    return;
+  }
+
   if (FeedbackSoundsEnabled()) {
     PlayFeedbackSound();
   }

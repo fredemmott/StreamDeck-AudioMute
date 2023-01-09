@@ -192,19 +192,24 @@ bool BaseMuteAction::FeedbackSoundsEnabled() const {
 
 void BaseMuteAction::RealDeviceDidChange() {
   const auto device = GetRealDeviceID();
-  mMuteUnmuteCallbackHandle = AddAudioDeviceMuteUnmuteCallback(
-    device, std::bind_front(&BaseMuteAction::OnMuteStateChanged, this, device));
+  mMuteUnmuteCallbackHandle
+    = AddAudioDeviceMuteUnmuteCallback(
+        device,
+        std::bind_front(&BaseMuteAction::OnMuteStateChanged, this, device))
+        .value_or(nullptr);
 }
 
 void BaseMuteAction::OnMuteStateChanged(
   const std::string& device,
   bool isMuted) {
-  try {
-    MuteStateDidChange(IsAudioDeviceMuted(device));
-  } catch (const device_error& e) {
-    ESDDebug("Error on real device change: {}", e.what());
+  auto state = IsAudioDeviceMuted(device);
+  if (!state) {
+    ESDDebug(
+      "Error on real device change: {}", static_cast<int>(state.error()));
     ShowAlert();
+    return;
   }
+  MuteStateDidChange(*state);
 }
 
 bool BaseMuteAction::IsDevicePresent() const {
@@ -212,17 +217,12 @@ bool BaseMuteAction::IsDevicePresent() const {
 }
 
 void BaseMuteAction::KeyUp() {
-  try {
-    DoAction();
-    // This is actually fine on Windows, but show an alert anyway to make it
-    // clear that something weird happened - don't want the user to have a hot
-    // mic without realizing it
-    if (!IsDevicePresent()) {
-      ESDDebug("Acted on a device that isn't present");
-      ShowAlert();
-    }
-  } catch (const device_error& e) {
-    ESDDebug("Error on keyup: {}", e.what());
+  DoAction();
+  // This is actually fine on Windows, but show an alert anyway to make it
+  // clear that something weird happened - don't want the user to have a hot
+  // mic without realizing it
+  if (!IsDevicePresent()) {
+    ESDDebug("Acted on a device that isn't present");
     ShowAlert();
   }
 }

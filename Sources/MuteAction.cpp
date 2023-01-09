@@ -17,21 +17,31 @@ void MuteAction::MuteStateDidChange(bool isMuted) {
 }
 
 void MuteAction::WillAppear() {
-  try {
-    MuteStateDidChange(IsAudioDeviceMuted(GetRealDeviceID()));
-    if (!IsDevicePresent()) {
-      ShowAlert();
-    }
-  } catch (const FredEmmott::Audio::device_error&) {
+  auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
+  if (!muteState) {
     ShowAlert();
+    return;
   }
+  MuteStateDidChange(*muteState);
 }
 
 void MuteAction::DoAction() {
-  if (IsAudioDeviceMuted(GetRealDeviceID())) {
+  auto deviceID = GetRealDeviceID();
+  auto muteState = IsAudioDeviceMuted(deviceID);
+  if (!muteState) {
+    ShowAlert();
     return;
   }
-  MuteAudioDevice(GetRealDeviceID());
+  const auto muted = *muteState;
+  if (muted) {
+    return;
+  }
+
+  if (!MuteAudioDevice(deviceID)) {
+    ShowAlert();
+    return;
+  }
+
   if (FeedbackSoundsEnabled()) {
     PlayFeedbackSound();
   }
