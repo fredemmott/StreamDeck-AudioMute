@@ -1,5 +1,5 @@
 configure_file(
-  manifest.json.in
+  manifest.in.json
   manifest.json
   NEWLINE_STYLE UNIX
 )
