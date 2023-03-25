@@ -16,9 +16,10 @@ jobs:
         env:
           CODE_SIGNING_PFX_BASE64: ${{ secrets.CODE_SIGNING_PFX_BASE64 }}
         run: |
+          $KeyFile = "${{runner.temp}}/MyCert.pfx"
           [System.Convert]::FromBase64String($Env:CODE_SIGNING_PFX_BASE64) `
-            | Set-Content ${{runner.temp}}/MyCert.pfx -AsByteStream
-          Add-Content $Env:GITHUB_OUTPUT "HAVE_KEY=true"
+            | Set-Content $KeyFile -AsByteStream
+          Add-Content $Env:GITHUB_OUTPUT "KEY_FILE=$KeyFile"
       - name: Configure
         working-directory: build
         shell: pwsh
@@ -32,8 +33,9 @@ jobs:
           if ( "${{matrix.os}}" -eq "windows" ) {
             $args += "-DCMAKE_SYSTEM_VERSION=10.0.22621.0"
           }
-          if ( "${{steps.signing-key.HAVE_KEY}}" -eq "true") {
-            $args += "-DSIGNTOOL_KEY_ARGS=/f;${{runner.temp}}/MyCert.pfx"
+          $KeyFile = "${{steps.signing-key.outputs.KEY_FILE}}"
+          if ( "$keyPath" -ne "" ) {
+            $args += "-DSIGNTOOL_KEY_ARGS=/f;$KeyFile"
           }
           cmake ${{github.workspace}}/source @args
       - name: Compile
