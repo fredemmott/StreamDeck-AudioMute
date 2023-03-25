@@ -5,10 +5,10 @@
  */
 #pragma once
 
-#include <filesystem>
+#include <StreamDeckSDK/ESDFilesystem.h>
 
 namespace FredEmmott::Audio {
 
-void PlayWavFile(const std::filesystem::path& path);
+void PlayWavFile(const ESD::filesystem::path& path);
 
 }

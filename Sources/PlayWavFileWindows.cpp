@@ -11,7 +11,7 @@
 
 namespace FredEmmott::Audio {
 
-void PlayWavFile(const std::filesystem::path& path) {
+void PlayWavFile(const ESD::filesystem::path& path) {
   PlaySoundW(path.c_str(), NULL, SND_ASYNC | SND_NODEFAULT);
 }
 
