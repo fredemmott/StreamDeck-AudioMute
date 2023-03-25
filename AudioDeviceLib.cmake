@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
   AudioDeviceLib
   GIT_REPOSITORY https://github.com/fredemmott/AudioDeviceLib
-  GIT_TAG be72a483704505c8453beed5dad458217db85f16
+  GIT_TAG 7ec63ac88204e93abaec9b17e63ddcd9f4b00abb
 )
 
 FetchContent_GetProperties(AudioDeviceLib)
