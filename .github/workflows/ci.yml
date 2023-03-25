@@ -5,7 +5,7 @@ jobs:
     name: Build ${{matrix.os}}/${{matrix.arch}}/${{matrix.build-type}}
     runs-on: ${{matrix.os}}-${{matrix.os_version}}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: source
       - name: Make build directory
@@ -75,7 +75,7 @@ jobs:
     needs: [build]
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: source
       - name: Make build directory
@@ -107,7 +107,7 @@ jobs:
             artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
             com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
       - name: Checkout DistributionTool
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: distributiontool-v1.4
       - name: Build .streamDeckPlugin
