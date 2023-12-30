@@ -50,3 +50,13 @@ jobs:
             asset_path: ${{runner.temp}}/artifacts/DebugSymbols-windows-RelWithDebInfo/sdmicmute.pdb
             asset_name: sdmicmute.pdb
             asset_content_type: application/octet-stream
+        - name: Attach dSYM Files
+          if: steps.ref.outputs.is-release == 'true'
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ steps.create-release.outputs.upload_url }}
+            asset_path: ${{runner.temp}}/artifacts/sdmicmute-lipo-dsym
+            asset_name: sdmicmute.dSYM
+            asset_content_type: application/octet-stream

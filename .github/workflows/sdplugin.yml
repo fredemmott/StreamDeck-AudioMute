@@ -34,19 +34,20 @@ jobs:
                 artifacts/MacOS-arm64-RelWithDebInfo/sdmicmute \
                 artifacts/MacOS-x86_64-RelWithDebInfo/sdmicmute \
                 -output sdmicmute
+              mkdir dsym
               cp -R \
                 artifacts/DebugSymbols-macos-arm64-RelWithDebInfo.dSYM \
-                sdmicmute.dSYM
+                dsym/sdmicmute.dSYM
               DSYM_FILE=Contents/Resources/DWARF/sdmicmute
               rm sdmicmute.dSYM/${DSYM_FILE}
               lipo -create \
                 artifacts/*.dSYM/${DSYM_FILE} \
-                -output sdmicmute.dSYM/${DSYM_FILE}
+                -output dsym/sdmicmute.dSYM/${DSYM_FILE}
           - name: Upload MacOS debug symbols
             uses: actions/upload-artifact@v4
             with:
-              name: sdmicmute.dSYM
-              path: ${{runner.temp}}/sdmicmute.dSYM
+              name: sdmicmute-lipo-dsym
+              path: ${{runner.temp}}/dsym
           - name: Copy executables
             working-directory: ${{runner.temp}}
             run: |
