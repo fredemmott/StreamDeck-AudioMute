@@ -123,7 +123,7 @@ jobs:
         working-directory: ${{runner.temp}}
         run: |
           install -m755 \
-            sdmicmute
+            sdmicmute \
             com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
           install -m755 \
             artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
