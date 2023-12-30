@@ -39,7 +39,7 @@ jobs:
                 artifacts/DebugSymbols-macos-arm64-RelWithDebInfo.dSYM \
                 dsym/sdmicmute.dSYM
               DSYM_FILE=Contents/Resources/DWARF/sdmicmute
-              rm sdmicmute.dSYM/${DSYM_FILE}
+              rm dsym/sdmicmute.dSYM/${DSYM_FILE}
               lipo -create \
                 artifacts/*.dSYM/${DSYM_FILE} \
                 -output dsym/sdmicmute.dSYM/${DSYM_FILE}
