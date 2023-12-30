@@ -105,13 +105,26 @@ jobs:
       - name: Display downloaded files
         run: ls -R
         working-directory: ${{runner.temp}}/artifacts
-      - name: Copy executables
+      - name: Prepare MacOS executables
         working-directory: ${{runner.temp}}
         run: |
           lipo -create \
             artifacts/MacOS-arm64-${{matrix.build-type}}/sdmicmute \
             artifacts/MacOS-x86_64-${{matrix.build-type}}/sdmicmute \
-            -output com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
+            -output sdmicmute
+          dsymutil sdmicmute
+          strip -x -S sdmicmute
+      - name: Upload MacOS debug symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugSymbols-MacOS-RelWithDebInfo
+          path: sdmicmute.dSYM
+      - name: Copy executables
+        working-directory: ${{runner.temp}}
+        run: |
+          install -m755 \
+            sdmicmute
+            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
           install -m755 \
             artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
             com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
