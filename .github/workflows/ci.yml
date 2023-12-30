@@ -41,15 +41,24 @@ jobs:
       - name: Compile
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} --parallel
-      - name: Install
-        working-directory: build
-        run: cmake --install . --config ${{matrix.build-type}}
+      - name: Split out MacOS debug symbols
+        if: matrix.os == 'macos' && matrix.build-type == 'RelWithDebInfo'
+        working-directory: build/Sources
+        run: |
+          dsymutil sdmicmute 
+          strip -x -S sdmicmute
       - name: Upload MacOS Executable
         if: matrix.os == 'macos' && matrix.build-type != 'Debug'
         uses: actions/upload-artifact@v4
         with:
           name: MacOS-${{matrix.arch}}-${{matrix.build-type}}
           path: build/Sources/sdmicmute
+      - name: Upload MacOS debug symbols
+        if: matrix.os == 'macos' && matrix.build-type == 'RelWithDebInfo'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DebugSymbols-${{matrix.os}}-${{matrix.arch}}-${{matrix.build-type}}
+          path: build/Sources/sdmicmute.dSYM
       - name: Upload Windows Executable
         if: matrix.os == 'windows' && matrix.build-type != 'Debug'
         uses: actions/upload-artifact@v4
@@ -57,7 +66,7 @@ jobs:
           name: Windows-${{matrix.build-type}}
           path: build/Sources/${{matrix.build-type}}/sdmicmute.exe
       - name: Upload Windows Debug Symbols
-        if: matrix.os == 'windows' && matrix.build-type != 'Release' && matrix.build-type != 'Debug'
+        if: matrix.os == 'windows' && matrix.build-type == 'RelWithDebInfo'
         uses: actions/upload-artifact@v4
         with:
           name: DebugSymbols-${{matrix.os}}-${{matrix.build-type}}
@@ -105,15 +114,18 @@ jobs:
       - name: Display downloaded files
         run: ls -R
         working-directory: ${{runner.temp}}/artifacts
-      - name: Prepare MacOS executables
+      - name: Combine MacOS artifacts
         working-directory: ${{runner.temp}}
         run: |
           lipo -create \
             artifacts/MacOS-arm64-${{matrix.build-type}}/sdmicmute \
             artifacts/MacOS-x86_64-${{matrix.build-type}}/sdmicmute \
             -output sdmicmute
-          dsymutil sdmicmute
-          strip -x -S sdmicmute
+            -output sdmicmute
+          lipo -create \
+            artifacts/DebugSymbols-MacOS-arm64-RelWithDebInfo/sdmicmute.DSYM \
+            artifacts/DebugSymbols-MacOS-x86_64-RelWithDebInfo/sdmicmute.DSYM \
+            -output sdmicmute.dSYM
       - name: Upload MacOS debug symbols
         uses: actions/upload-artifact@v4
         with:
