@@ -3,7 +3,7 @@ on:
     workflow_call:
 jobs:
     streamDeckPlugin:
-        name: 
+        name: StreamDeck Plugin
         runs-on: macos-latest
         steps:
           - uses: actions/checkout@v4
@@ -34,10 +34,14 @@ jobs:
                 artifacts/MacOS-arm64-RelWithDebInfo/sdmicmute \
                 artifacts/MacOS-x86_64-RelWithDebInfo/sdmicmute \
                 -output sdmicmute
-              lipo -create \
+              cp - R
                 artifacts/DebugSymbols-macos-arm64-RelWithDebInfo.dSYM \
-                artifacts/DebugSymbols-macos-x86_64-RelWithDebInfo.dSYM \
-                -output sdmicmute.dSYM
+                sdmicmute.dSYM
+              DSYM_FILE=Contents/Resources/DWARF/sdmicmute
+              rm sdmicmute.dSYM/${DSYM_FILE}
+              lipo -create \
+                artifacts/*.dSYM/${DSYM_FILE} \
+                -output sdmicmute.dSYM/${DSYM_FILE}
           - name: Upload MacOS debug symbols
             uses: actions/upload-artifact@v4
             with:
