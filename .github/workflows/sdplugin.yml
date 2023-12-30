@@ -46,7 +46,7 @@ jobs:
             uses: actions/upload-artifact@v4
             with:
               name: sdmicmute.dSYM
-              path: sdmicmute.dSYM
+              path: ${{runner.temp}}/sdmicmute.dSYM
           - name: Copy executables
             working-directory: ${{runner.temp}}
             run: |
