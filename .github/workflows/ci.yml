@@ -89,73 +89,9 @@ jobs:
             arch: x86_64
             os_version: 12
   streamDeckPlugin:
-    name: streamDeckPlugin/${{matrix.build-type}}
-    needs: [build]
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: source
-      - name: Make build directory
-        run: cmake -E make_directory build
-      - name: Configure
-        working-directory: build
-        shell: pwsh
-        run: |
-          cmake ${{github.workspace}}/source `
-            "-DCMAKE_INSTALL_PREFIX=${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin"
-      - name: Install static files
-        working-directory: build/sdPlugin
-        run: make install
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ${{runner.temp}}/artifacts
-      - name: Display downloaded files
-        run: ls -R
-        working-directory: ${{runner.temp}}/artifacts
-      - name: Combine MacOS artifacts
-        working-directory: ${{runner.temp}}
-        run: |
-          lipo -create \
-            artifacts/MacOS-arm64-${{matrix.build-type}}/sdmicmute \
-            artifacts/MacOS-x86_64-${{matrix.build-type}}/sdmicmute \
-            -output sdmicmute
-          lipo -create \
-            artifacts/DebugSymbols-MacOS-arm64-RelWithDebInfo.dSYM \
-            artifacts/DebugSymbols-MacOS-x86_64-RelWithDebInfo.dSYM \
-            -output sdmicmute.dSYM
-      - name: Upload MacOS debug symbols
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdmicmute.dSYM
-          path: sdmicmute.dSYM
-      - name: Copy executables
-        working-directory: ${{runner.temp}}
-        run: |
-          install -m755 \
-            sdmicmute \
-            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
-          install -m755 \
-            artifacts/Windows-${{matrix.build-type}}/sdmicmute.exe \
-            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
-      - name: Checkout DistributionTool
-        uses: actions/checkout@v4
-        with:
-          ref: distributiontool-v1.4
-      - name: Build .streamDeckPlugin
-        run: |
-          ./DistributionTool -b \
-            -i ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin \
-            -o .
-      - name: Upload .streamDeckPlugin
-        uses: actions/upload-artifact@v4
-        with:
-          name: com.fredemmott.micmutetoggle.streamDeckPlugin
-          path: com.fredemmott.micmutetoggle.streamDeckPlugin
-    strategy:
-      matrix:
-        build-type: [RelWithDebInfo]
+    name: StreamDeck Plugin
+    needs: build
+    uses: ./.github/workflows/sdplugin.yml
   release:
     needs: [streamDeckPlugin]
     runs-on: ubuntu-latest
