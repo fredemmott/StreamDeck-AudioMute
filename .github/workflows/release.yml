@@ -15,10 +15,10 @@ jobs:
           id: ref
           run: |
             if echo ${{github.ref}} | grep --silent refs/tags/v; then
-              echo "::set-output name=is-release::true"
-              echo "::set-output name=tag::$(echo ${{github.ref}} | awk -F/ '{print $NF}')"
+              echo "is-release=true" >> $GITHUB_OUTPUT
+              echo "tag=$(echo ${{github.ref}} | awk -F/ '{print $NF}')" >> $GITHUB_OUTPUT
             else
-              echo "::set-output name=is-release::false"
+              echo "is-release=false" >> $GITHUB_OUTPUT
             fi
         - name: Create Draft Release
           id: create-release
