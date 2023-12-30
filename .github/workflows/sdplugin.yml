@@ -34,7 +34,7 @@ jobs:
                 artifacts/MacOS-arm64-RelWithDebInfo/sdmicmute \
                 artifacts/MacOS-x86_64-RelWithDebInfo/sdmicmute \
                 -output sdmicmute
-              cp - R
+              cp -R
                 artifacts/DebugSymbols-macos-arm64-RelWithDebInfo.dSYM \
                 sdmicmute.dSYM
               DSYM_FILE=Contents/Resources/DWARF/sdmicmute
