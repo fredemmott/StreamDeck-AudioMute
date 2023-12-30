@@ -57,7 +57,7 @@ jobs:
         if: matrix.os == 'macos' && matrix.build-type == 'RelWithDebInfo'
         uses: actions/upload-artifact@v4
         with:
-          name: DebugSymbols-${{matrix.os}}-${{matrix.arch}}-${{matrix.build-type}}
+          name: DebugSymbols-${{matrix.os}}-${{matrix.arch}}-${{matrix.build-type}}.dSYM
           path: build/Sources/sdmicmute.dSYM
       - name: Upload Windows Executable
         if: matrix.os == 'windows' && matrix.build-type != 'Debug'
@@ -121,15 +121,14 @@ jobs:
             artifacts/MacOS-arm64-${{matrix.build-type}}/sdmicmute \
             artifacts/MacOS-x86_64-${{matrix.build-type}}/sdmicmute \
             -output sdmicmute
-            -output sdmicmute
           lipo -create \
-            artifacts/DebugSymbols-MacOS-arm64-RelWithDebInfo/sdmicmute.DSYM \
-            artifacts/DebugSymbols-MacOS-x86_64-RelWithDebInfo/sdmicmute.DSYM \
+            artifacts/DebugSymbols-MacOS-arm64-RelWithDebInfo.dSYM \
+            artifacts/DebugSymbols-MacOS-x86_64-RelWithDebInfo.dSYM \
             -output sdmicmute.dSYM
       - name: Upload MacOS debug symbols
         uses: actions/upload-artifact@v4
         with:
-          name: DebugSymbols-MacOS-RelWithDebInfo
+          name: sdmicmute.dSYM
           path: sdmicmute.dSYM
       - name: Copy executables
         working-directory: ${{runner.temp}}
@@ -152,7 +151,7 @@ jobs:
       - name: Upload .streamDeckPlugin
         uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.build-type}}-StreamDeckPlugin
+          name: com.fredemmott.micmutetoggle.streamDeckPlugin
           path: com.fredemmott.micmutetoggle.streamDeckPlugin
     strategy:
       matrix:
