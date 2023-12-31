@@ -18,7 +18,7 @@ void MuteAction::MuteStateDidChange(bool isMuted) {
 
 void MuteAction::WillAppear() {
   auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
-  if (!muteState) {
+  if (!muteState.has_value()) {
     ShowAlert();
     return;
   }
@@ -28,7 +28,7 @@ void MuteAction::WillAppear() {
 void MuteAction::DoAction() {
   auto deviceID = GetRealDeviceID();
   auto muteState = IsAudioDeviceMuted(deviceID);
-  if (!muteState) {
+  if (!muteState.has_value()) {
     ShowAlert();
     return;
   }
@@ -49,5 +49,5 @@ void MuteAction::DoAction() {
 
 void MuteAction::PlayFeedbackSound() {
   FredEmmott::Audio::PlayWavFile(
-    ESDUtilities::GetPluginDirectoryPath() / "mute.wav");
+    ESDUtilities::GetPluginDirectoryPath() / ESD::filesystem::path { "mute.wav" });
 }

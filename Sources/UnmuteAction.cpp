@@ -20,7 +20,7 @@ void UnmuteAction::MuteStateDidChange(bool isMuted) {
 
 void UnmuteAction::WillAppear() {
   const auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
-  if (!muteState) {
+  if (!muteState.has_value()) {
     ShowAlert();
     return;
   }
@@ -31,7 +31,7 @@ void UnmuteAction::WillAppear() {
 void UnmuteAction::DoAction() {
   const auto device(GetRealDeviceID());
   const auto muteState = IsAudioDeviceMuted(device);
-  if (!muteState) {
+  if (!muteState.has_value()) {
     ShowAlert();
     return;
   }

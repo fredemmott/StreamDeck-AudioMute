@@ -23,7 +23,7 @@ void ToggleMuteAction::MuteStateDidChange(bool isMuted) {
 
 void ToggleMuteAction::WillAppear() {
   auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
-  if (!muteState) {
+  if (!muteState.has_value()) {
     ShowAlert();
     return;
   }
@@ -35,7 +35,7 @@ void ToggleMuteAction::DoAction() {
   const auto device(GetRealDeviceID());
 
   const auto muteState = IsAudioDeviceMuted(device);
-  if (!muteState) {
+  if (!muteState.has_value()) {
     ShowAlert();
     return;
   }
@@ -64,7 +64,7 @@ void ToggleMuteAction::DoAction() {
 void ToggleMuteAction::KeyUp() {
   if (mPushAndHoldToTalk) {
     const auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
-    if (!muteState) {
+    if (!muteState.has_value()) {
       ShowAlert();
       return;
     }

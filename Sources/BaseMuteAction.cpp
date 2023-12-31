@@ -145,16 +145,22 @@ void BaseMuteAction::OnPlugEvent(
   }
 
   switch (event) {
-    case AudioDevicePlugEvent::ADDED:
+    case AudioDevicePlugEvent::ADDED: {
       ESDLog("Matching device added");
+      this->RealDeviceDidChange();
       // Windows will now preserve/enforce the state if changed while the
       // device is unplugged, but MacOS won't, so we need to update the
       // displayed state to match reality
-      this->MuteStateDidChange(IsAudioDeviceMuted(deviceID));
+      const auto result = IsAudioDeviceMuted(deviceID);
+      if (result.has_value()) {
+        this->MuteStateDidChange(result.value());
+      }
       ShowOK();
       return;
+    }
     case AudioDevicePlugEvent::REMOVED:
       ESDLog("Matching device removed");
+      this->RealDeviceDidChange();
       ShowAlert();
       return;
   }
@@ -203,7 +209,7 @@ void BaseMuteAction::OnMuteStateChanged(
   const std::string& device,
   bool isMuted) {
   auto state = IsAudioDeviceMuted(device);
-  if (!state) {
+  if (!state.has_value()) {
     ESDDebug(
       "Error on real device change: {}", static_cast<int>(state.error()));
     ShowAlert();

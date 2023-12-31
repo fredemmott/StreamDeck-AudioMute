@@ -15,7 +15,7 @@ set(VERSION_BUILD "${DEFAULT_VERSION_BUILD}" CACHE STRING "patch component of ve
 
 project(
   com.fredemmott.micmutetoggle.sdPlugin
-  VERSION 3.2.0.${VERSION_BUILD}
+  VERSION 3.3.0.${VERSION_BUILD}
   LANGUAGES CXX
 )
 message(STATUS "Configuring v${CMAKE_PROJECT_VERSION}")
