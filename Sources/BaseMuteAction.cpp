@@ -67,14 +67,16 @@ void from_json(const json& json, MuteActionSettings& settings) {
     };
   };
 
+  settings.fuzzyMatching = json.value<bool>("fuzzyMatching", false);
   settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
+
+  if (json.contains("toggleKind")) {
+    settings.toggleKind = json.at("toggleKind");
+  }
 
   // Legacy setting
   if (json.value<bool>("ptt", false)) {
     settings.toggleKind = ToggleKind::TogglePressPttPtmHold;
-  }
-  if (json.contains("toggleKind")) {
-    settings.toggleKind = json.at("toggleKind");
   }
 }
 
@@ -91,42 +93,47 @@ static std::string FuzzifyInterface(const std::string& name) {
 std::string MuteActionSettings::VolatileDeviceID() const {
   const auto specificID = DefaultAudioDevices::GetRealDeviceID(device.id);
   if (GetAudioDeviceState(specificID) == AudioDeviceState::CONNECTED) {
+    ESDDebug("Exact match found");
     return specificID;
   }
 
   if (!fuzzyMatching) {
+    ESDDebug("Fuzzy disabled, but no match");
     return specificID;
   }
 
   if (device.interfaceName.empty()) {
-    ESDLog(
+    ESDDebug(
       "Would try a fuzzy match, but don't have a saved interface name :'(");
     return specificID;
   }
 
   const auto fuzzyInterface = FuzzifyInterface(device.interfaceName);
-  ESDLog(
+  ESDDebug(
     "Trying a fuzzy match: '{}' -> '{}'", device.interfaceName, fuzzyInterface);
 
   for (const auto& [otherId, otherDevice]:
        GetAudioDeviceList(device.direction)) {
+    if (otherDevice.state != AudioDeviceState::CONNECTED) {
+      continue;
+    }
     const auto fuzzyOtherInterface
       = FuzzifyInterface(otherDevice.interfaceName);
-    ESDLog(
+    ESDDebug(
       "Trying '{}' -> '{}'", otherDevice.interfaceName, fuzzyOtherInterface);
     if (
       fuzzyInterface != fuzzyOtherInterface
       || device.endpointName != otherDevice.endpointName) {
       continue;
     }
-    ESDLog(
+    ESDDebug(
       "Fuzzy device match for {}/{}",
       device.interfaceName,
       device.endpointName);
     return otherId;
   }
 
-  ESDLog(
+  ESDDebug(
     "Failed fuzzy match for {}/{}", device.interfaceName, device.endpointName);
   return device.id;
 }
