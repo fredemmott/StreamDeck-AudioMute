@@ -17,11 +17,17 @@ enum class DeviceMatchStrategy {
   Special,
 };
 
+enum class ToggleKind {
+  ToggleOnly,
+  TogglePressPttPtmHold,
+  PttPtmOnly,
+};
+
 struct MuteActionSettings {
   AudioDeviceInfo device;
   DeviceMatchStrategy matchStrategy = DeviceMatchStrategy::ID;
   bool feedbackSounds = true;
-  bool ptt = false;
+  ToggleKind toggleKind = ToggleKind::ToggleOnly;
 
   auto operator<=>(const MuteActionSettings&) const = default;
   std::string VolatileDeviceID() const;

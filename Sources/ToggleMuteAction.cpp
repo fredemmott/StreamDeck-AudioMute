@@ -32,6 +32,10 @@ void ToggleMuteAction::WillAppear() {
 }
 
 void ToggleMuteAction::DoAction() {
+  ToggleMute();
+}
+
+void ToggleMuteAction::ToggleMute() {
   const auto device(GetRealDeviceID());
 
   const auto muteState = IsAudioDeviceMuted(device);
@@ -62,48 +66,50 @@ void ToggleMuteAction::DoAction() {
 }
 
 void ToggleMuteAction::KeyUp() {
-  if (mPushAndHoldToTalk) {
-    const auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
-    if (!muteState.has_value()) {
-      ShowAlert();
-      return;
-    }
-    const auto muted = *muteState;
-    if (
-      std::chrono::steady_clock::now() - mKeyDownTime
-      < std::chrono::milliseconds(500)) {
-      // Short press, and action already taken on keydown - but the streamdeck
-      // software automatically switches state on key up. Undo this.
-      MuteStateDidChange(muted);
-      return;
-    }
-
-    if (muted) {
-      // PTM-mode, unmute immediately...
-      DoAction();
-      return;
-    }
-
-    // PTT: people tend to let go of the button just a little too soon, so delay
-    auto ctx = GetESD()->GetAsioContext();
-    mPttReleaseTimer = std::make_unique<asio::steady_timer>(
-      *ctx, std::chrono::milliseconds(250));
-    mPttReleaseTimer->async_wait([this](const asio::error_code& ec) {
-      if (ec) {
-        return;
-      }
-      DoAction();
-    });
+  if (mKind == ToggleKind::ToggleOnly) {
+    DoAction();
     return;
   }
-  BaseMuteAction::KeyUp();
+
+  const auto muteState = IsAudioDeviceMuted(GetRealDeviceID());
+  if (!muteState.has_value()) {
+    ShowAlert();
+    return;
+  }
+
+  const auto muted = *muteState;
+  if (
+    mKind == ToggleKind::TogglePressPttPtmHold
+    && (std::chrono::steady_clock::now() - mKeyDownTime < std::chrono::milliseconds(500))) {
+    // Short press, and action already taken on keydown - but the streamdeck
+    // software automatically switches state on key up. Undo this.
+    MuteStateDidChange(muted);
+    return;
+  }
+
+  if (muted) {
+    // PTM-mode, unmute immediately...
+    DoAction();
+    return;
+  }
+
+  // PTT: people tend to let go of the button just a little too soon, so delay
+  auto ctx = GetESD()->GetAsioContext();
+  mPttReleaseTimer = std::make_unique<asio::steady_timer>(
+    *ctx, std::chrono::milliseconds(250));
+  mPttReleaseTimer->async_wait([this](const asio::error_code& ec) {
+    if (ec) {
+      return;
+    }
+    DoAction();
+  });
+  return;
 }
 
 void ToggleMuteAction::KeyDown() {
-  if (mPushAndHoldToTalk) {
-    DoAction();
+  if (mKind != ToggleKind::ToggleOnly) {
+    ToggleMute();
     mKeyDownTime = std::chrono::steady_clock::now();
-    return;
   }
   BaseMuteAction::KeyDown();
 }
@@ -111,6 +117,6 @@ void ToggleMuteAction::KeyDown() {
 void ToggleMuteAction::SettingsDidChange(
   const MuteActionSettings& oldSettings,
   const MuteActionSettings& newSettings) {
-  mPushAndHoldToTalk = newSettings.ptt;
+  mKind = newSettings.toggleKind;
   BaseMuteAction::SettingsDidChange(oldSettings, newSettings);
 }

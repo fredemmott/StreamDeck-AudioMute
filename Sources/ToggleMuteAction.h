@@ -26,9 +26,11 @@ class ToggleMuteAction final : public BaseMuteAction {
   virtual void MuteStateDidChange(bool isMuted) override;
   virtual void WillAppear() override;
   virtual void DoAction() override;
+  
+  void ToggleMute();
 
  private:
-  bool mPushAndHoldToTalk = false;
+  ToggleKind mKind { ToggleKind::ToggleOnly };
   std::chrono::steady_clock::time_point mKeyDownTime;
   std::unique_ptr<asio::steady_timer> mPttReleaseTimer;
 };

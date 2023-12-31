@@ -25,6 +25,14 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {DeviceMatchStrategy::Special, "Special"},
   });
 
+NLOHMANN_JSON_SERIALIZE_ENUM(
+  ToggleKind,
+  {
+    {ToggleKind::ToggleOnly, "ToggleOnly"},
+    {ToggleKind::TogglePressPttPtmHold, "TogglePressPttPtmHold"},
+    {ToggleKind::PttPtmOnly, "PttPtmOnly"},
+  });
+
 void from_json(const json& json, MuteActionSettings& settings) {
   if (json.contains("device")) {
     settings.device = json.at("device");
@@ -49,7 +57,14 @@ void from_json(const json& json, MuteActionSettings& settings) {
   };
 
   settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
-  settings.ptt = json.value<bool>("ptt", false);
+
+  // Legacy setting 
+  if (json.value<bool>("ptt", false)) {
+    settings.toggleKind = ToggleKind::TogglePressPttPtmHold; 
+  }
+  if (json.contains("toggleKind")) {
+    settings.toggleKind = json.at("toggleKind");
+  }
 }
 
 std::string MuteActionSettings::VolatileDeviceID() const {
