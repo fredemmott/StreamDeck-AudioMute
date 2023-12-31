@@ -11,12 +11,6 @@
 
 using namespace FredEmmott::Audio;
 
-enum class DeviceMatchStrategy {
-  ID,
-  Fuzzy,
-  Special,
-};
-
 enum class ToggleKind {
   ToggleOnly,
   TogglePressPttPtmHold,
@@ -25,7 +19,7 @@ enum class ToggleKind {
 
 struct MuteActionSettings {
   AudioDeviceInfo device;
-  DeviceMatchStrategy matchStrategy = DeviceMatchStrategy::ID;
+  bool fuzzyMatching = false;
   bool feedbackSounds = true;
   ToggleKind toggleKind = ToggleKind::ToggleOnly;
 
@@ -36,8 +30,10 @@ void from_json(const nlohmann::json& json, MuteActionSettings& settings);
 
 class BaseMuteAction : public ESDActionWithExternalState<MuteActionSettings> {
  public:
-  using ESDActionWithExternalState<
-    MuteActionSettings>::ESDActionWithExternalState;
+  BaseMuteAction(
+    ESDConnectionManager* esd_connection,
+    const std::string& action,
+    const std::string& context);
   virtual ~BaseMuteAction();
 
   void SendToPlugin(const nlohmann::json& payload) override;

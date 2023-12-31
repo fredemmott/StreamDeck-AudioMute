@@ -11,19 +11,12 @@
 #include <StreamDeckSDK/ESDLogger.h>
 
 #include <functional>
+#include <regex>
 
 #include "DefaultAudioDevices.h"
 #include "audio_json.h"
 
 using json = nlohmann::json;
-
-NLOHMANN_JSON_SERIALIZE_ENUM(
-  DeviceMatchStrategy,
-  {
-    {DeviceMatchStrategy::ID, "ID"},
-    {DeviceMatchStrategy::Fuzzy, "Fuzzy"},
-    {DeviceMatchStrategy::Special, "Special"},
-  });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
   ToggleKind,
@@ -33,17 +26,36 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
     {ToggleKind::PttPtmOnly, "PttPtmOnly"},
   });
 
+static AudioDeviceInfo GetAudioDeviceInfo(const std::string& id) {
+  {
+    const auto in = GetAudioDeviceList(AudioDeviceDirection::INPUT);
+    if (in.contains(id)) {
+      return in.at(id);
+    }
+  }
+
+  {
+    const auto out = GetAudioDeviceList(AudioDeviceDirection::OUTPUT);
+    if (out.contains(id)) {
+      return out.at(id);
+    }
+  }
+
+  return {.id = id};
+}
+
 void from_json(const json& json, MuteActionSettings& settings) {
   if (json.contains("device")) {
     settings.device = json.at("device");
-    settings.matchStrategy = json.at("matchStrategy");
-  } else if (json.contains("deviceID")) {
+  }
+
+  if (json.contains("deviceID")) {
     const auto id = json.at("deviceID").get<std::string>();
-    settings.device = {.id = id};
-    if (DefaultAudioDevices::GetRealDeviceID(id) == id) {
-      settings.matchStrategy = DeviceMatchStrategy::ID;
-    } else {
-      settings.matchStrategy = DeviceMatchStrategy::Special;
+
+    if (DefaultAudioDevices::GetRealDeviceID(id) != id) {
+      settings.device = {.id = id};
+    } else if (id != settings.device.id) {
+      settings.device = GetAudioDeviceInfo(id);
     }
   } else {
     settings.device = {
@@ -53,47 +65,81 @@ void from_json(const json& json, MuteActionSettings& settings) {
         ? DefaultAudioDevices::DEFAULT_INPUT_ID
         : DefaultAudioDevices::COMMUNICATIONS_INPUT_ID,
     };
-    settings.matchStrategy = DeviceMatchStrategy::Special;
   };
 
   settings.feedbackSounds = json.value<bool>("feedbackSounds", true);
 
-  // Legacy setting 
+  // Legacy setting
   if (json.value<bool>("ptt", false)) {
-    settings.toggleKind = ToggleKind::TogglePressPttPtmHold; 
+    settings.toggleKind = ToggleKind::TogglePressPttPtmHold;
   }
   if (json.contains("toggleKind")) {
     settings.toggleKind = json.at("toggleKind");
   }
 }
 
+static std::string FuzzifyInterface(const std::string& name) {
+  // Windows likes to replace "Foo" with "2- Foo"
+  const std::regex pattern {"^([0-9]+- )?(.+)$"};
+  std::smatch captures;
+  if (!std::regex_match(name, captures, pattern)) {
+    return name;
+  }
+  return captures[2];
+}
+
 std::string MuteActionSettings::VolatileDeviceID() const {
-  if (matchStrategy == DeviceMatchStrategy::Special) {
-    return DefaultAudioDevices::GetRealDeviceID(device.id);
+  const auto specificID = DefaultAudioDevices::GetRealDeviceID(device.id);
+  if (GetAudioDeviceState(specificID) == AudioDeviceState::CONNECTED) {
+    return specificID;
   }
 
-  if (matchStrategy == DeviceMatchStrategy::ID) {
-    return device.id;
+  if (!fuzzyMatching) {
+    return specificID;
   }
 
-  if (GetAudioDeviceState(device.id) == AudioDeviceState::CONNECTED) {
-    return device.id;
+  if (device.interfaceName.empty()) {
+    ESDLog(
+      "Would try a fuzzy match, but don't have a saved interface name :'(");
+    return specificID;
   }
 
-  for (const auto& [otherID, other]: GetAudioDeviceList(device.direction)) {
+  const auto fuzzyInterface = FuzzifyInterface(device.interfaceName);
+  ESDLog(
+    "Trying a fuzzy match: '{}' -> '{}'", device.interfaceName, fuzzyInterface);
+
+  for (const auto& [otherId, otherDevice]:
+       GetAudioDeviceList(device.direction)) {
+    const auto fuzzyOtherInterface
+      = FuzzifyInterface(otherDevice.interfaceName);
+    ESDLog(
+      "Trying '{}' -> '{}'", otherDevice.interfaceName, fuzzyOtherInterface);
     if (
-      device.interfaceName == other.interfaceName
-      && device.endpointName == other.endpointName) {
-      ESDDebug(
-        "Fuzzy device match for {}/{}",
-        device.interfaceName,
-        device.endpointName);
-      return otherID;
+      fuzzyInterface != fuzzyOtherInterface
+      || device.endpointName != otherDevice.endpointName) {
+      continue;
     }
+    ESDLog(
+      "Fuzzy device match for {}/{}",
+      device.interfaceName,
+      device.endpointName);
+    return otherId;
   }
+
   ESDLog(
     "Failed fuzzy match for {}/{}", device.interfaceName, device.endpointName);
   return device.id;
+}
+
+BaseMuteAction::BaseMuteAction(
+  ESDConnectionManager* esd_connection,
+  const std::string& action,
+  const std::string& context)
+  : ESDActionWithExternalState(esd_connection, action, context) {
+  mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback(
+    std::bind_front(&BaseMuteAction::OnPlugEvent, this));
+  mDefaultChangeCallbackHandle = AddDefaultAudioDeviceChangeCallback(
+    std::bind_front(&BaseMuteAction::OnDefaultDeviceChange, this));
 }
 
 BaseMuteAction::~BaseMuteAction() {
@@ -132,21 +178,6 @@ void BaseMuteAction::SettingsDidChange(
     return;
   }
   RealDeviceDidChange();
-  if (new_settings.matchStrategy == DeviceMatchStrategy::ID) {
-    mDefaultChangeCallbackHandle = {};
-    ESDDebug("Registering plugevent callback");
-    mPlugEventCallbackHandle = AddAudioDevicePlugEventCallback(
-      std::bind_front(&BaseMuteAction::OnPlugEvent, this));
-    return;
-  }
-
-  // Differing real device ID means we have a place holder device, e.g.
-  // 'Default input device'
-
-  mPlugEventCallbackHandle = {};
-  ESDDebug("Registering default device change callback for {}", GetContext());
-  mDefaultChangeCallbackHandle = AddDefaultAudioDeviceChangeCallback(
-    std::bind_front(&BaseMuteAction::OnDefaultDeviceChange, this));
 }
 
 void BaseMuteAction::OnPlugEvent(
@@ -154,7 +185,7 @@ void BaseMuteAction::OnPlugEvent(
   const std::string& deviceID) {
   ESDLog(
     "Received plug event {} for device {}", static_cast<int>(event), deviceID);
-  if (deviceID != GetSettings().device.id) {
+  if (deviceID != GetRealDeviceID()) {
     ESDLog("Device is not a match");
     return;
   }

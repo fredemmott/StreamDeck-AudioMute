@@ -23,6 +23,13 @@
         </optgroup>
       </select>
     </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Device matching</div>
+      <select class="sdpi-item-value select" id="fuzzyMatching" onchange="saveSettings()">
+        <option value="off">Exact (by ID)</option>
+        <option value="on">Fuzzy (by name, ignoring some changes)</option>
+      </select>
+    </div>
     <div class="sdpi-item hidden" id="toggleKindDiv">
       <div class="sdpi-item-label">PTT/PTM</div>
       <select class="sdpi-item-value select" id="toggleKind" onchange="saveSettings()"">
@@ -82,9 +89,17 @@
       actionInfo = jsonObj.actionInfo.action;
       settings = jsonObj.actionInfo.payload.settings;
       ctx = jsonObj.actionInfo.context;
+
       if (!('feedbackSounds' in settings)) {
         settings.feedbackSounds = true;
       }
+      document.getElementById('feedbackSounds').checked = settings.feedbackSounds;
+      
+      if (!('fuzzyMatching' in settings)) {
+        settings.fuzzyMatching = false;
+      }
+      document.querySelector(`#fuzzyMatching option[value="${settings.fuzzyMatching ? "on" : "off"}"]`).setAttribute('selected', true);
+
       if (actionInfo == ACTION_IDS.toggle) {
         if (!('toggleKind' in settings)) {
           if ('ptt' in settings) {
@@ -96,7 +111,6 @@
         document.getElementById('toggleKindDiv').classList.remove('hidden');
         document.querySelector(`#toggleKind option[value="${settings.toggleKind}"]`).setAttribute('selected', true);
       }
-      document.getElementById('feedbackSounds').checked = settings.feedbackSounds;
 
       $SD.api.sendToPlugin(uuid, actionInfo, { event: "getDeviceList" });
     };
@@ -211,6 +225,7 @@
       settings.deviceLabel = deviceElement.textContent;
       settings.deviceContainer = deviceElement.parentElement.id;
       settings.feedbackSounds = document.getElementById('feedbackSounds').checked;
+      settings.fuzzyMatching = document.getElementById('fuzzyMatching').value == 'on';
       if (actionInfo == ACTION_IDS.toggle) {
         settings.toggleKind = document.getElementById('toggleKind').value;
       }
