@@ -1,4 +1,3 @@
-name: Create StreamDeck plugin
 on:
     workflow_call:
 jobs:
