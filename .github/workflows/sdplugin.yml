@@ -43,11 +43,15 @@ jobs:
               lipo -create \
                 artifacts/*.dSYM/${DSYM_FILE} \
                 -output dsym/sdmicmute.dSYM/${DSYM_FILE}
+                (
+                  cd dsym
+                  zip -r sdmicmute.dSYM.zip sdmicmute.dSYM
+                )
           - name: Upload MacOS debug symbols
             uses: actions/upload-artifact@v4
             with:
               name: sdmicmute-lipo-dsym
-              path: ${{runner.temp}}/dsym
+              path: ${{runner.temp}}/dsym/sdmicmute.dSYM.zip
           - name: Copy executables
             working-directory: ${{runner.temp}}
             run: |

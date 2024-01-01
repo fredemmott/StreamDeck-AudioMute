@@ -57,6 +57,6 @@ jobs:
             GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN }}
           with:
             upload_url: ${{ steps.create-release.outputs.upload_url }}
-            asset_path: ${{runner.temp}}/artifacts/sdmicmute-lipo-dsym
-            asset_name: sdmicmute.dSYM
+            asset_path: ${{runner.temp}}/artifacts/sdmicmute-lipo-dsym/sdmicmute.dSYM.zip
+            asset_name: sdmicmute.dSYM.zip
             asset_content_type: application/octet-stream
