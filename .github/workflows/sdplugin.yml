@@ -3,7 +3,7 @@ on:
     workflow_call:
 jobs:
     streamDeckPlugin:
-        name: StreamDeck Plugin
+        name: Package
         runs-on: macos-latest
         steps:
           - uses: actions/checkout@v4
