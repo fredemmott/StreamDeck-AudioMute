@@ -1,0 +1,76 @@
+on:
+  workflow_call:
+jobs:
+  streamDeckPlugin:
+    name: Package
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: source
+      - name: Make build directory
+        run: cmake -E make_directory build
+      - name: Configure
+        working-directory: build
+        shell: pwsh
+        run: |
+          cmake ${{github.workspace}}/source `
+            "-DCMAKE_INSTALL_PREFIX=${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin"
+      - name: Install static files
+        working-directory: build/sdPlugin
+        run: make install
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{runner.temp}}/artifacts
+      - name: Display downloaded files
+        run: ls -R
+        working-directory: ${{runner.temp}}/artifacts
+      - name: Combine MacOS artifacts
+        working-directory: ${{runner.temp}}
+        run: |
+          lipo -create \
+            artifacts/build-macos-arm64-RelWithDebInfo/sdmicmute \
+            artifacts/build-macos-x86_64-RelWithDebInfo/sdmicmute \
+            -output sdmicmute
+          mkdir dsym
+          cp -R \
+            artifacts/build-macos-arm64-RelWithDebInfo/*.dSYM \
+            dsym/sdmicmute.dSYM
+          DSYM_FILE=Contents/Resources/DWARF/sdmicmute
+          rm dsym/sdmicmute.dSYM/${DSYM_FILE}
+          lipo -create \
+            artifacts/build-macos*/*.dSYM/${DSYM_FILE} \
+            -output dsym/sdmicmute.dSYM/${DSYM_FILE}
+            (
+              cd dsym
+              zip -r sdmicmute.dSYM.zip sdmicmute.dSYM
+            )
+      - name: Upload MacOS debug symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-macos-DebugSymbols
+          path: ${{runner.temp}}/dsym/sdmicmute.dSYM.zip
+      - name: Copy executables
+        working-directory: ${{runner.temp}}
+        run: |
+          install -m755 \
+            sdmicmute \
+            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute
+          install -m755 \
+            artifacts/build-windows-x86_64-RelWithDebInfo/sdmicmute.exe \
+            com.fredemmott.micmutetoggle.sdPlugin/sdmicmute.exe
+      - name: Checkout DistributionTool
+        uses: actions/checkout@v4
+        with:
+          ref: distributiontool-v1.4
+      - name: Build .streamDeckPlugin
+        run: |
+          ./DistributionTool -b \
+            -i ${{runner.temp}}/com.fredemmott.micmutetoggle.sdPlugin \
+            -o .
+      - name: Upload .streamDeckPlugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-sdplugin
+          path: com.fredemmott.micmutetoggle.streamDeckPlugin
