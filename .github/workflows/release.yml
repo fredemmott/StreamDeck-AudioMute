@@ -24,7 +24,7 @@ jobs:
     - name: Create Draft Release
       id: create-release
       if: steps.ref.outputs.is-release == 'true'
-      uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87
+      uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191
       with:
         tag_name: ${{steps.ref.outputs.tag}}
         prerelease: ${{contains(github.ref_name, '-')}}
